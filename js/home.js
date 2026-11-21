@@ -83,7 +83,7 @@
     // reloj del autoplay: avanza solo si está a la vista, sin hover/foco, pestaña visible y sin pausa
     (function tick(now) {
       const dt = now - last; last = now;
-      if (!paused && !hover && inView && !document.hidden && !document.body.classList.contains("chat-open")) {
+      if (!paused && !hover && inView && !document.hidden && !document.body.classList.contains("chat-open") && !document.documentElement.classList.contains("is-loading")) {
         elapsed += dt; barEls[idx].style.setProperty("--p", Math.min(1, elapsed / DUR));
         if (elapsed >= DUR) go(idx + 1);
       }

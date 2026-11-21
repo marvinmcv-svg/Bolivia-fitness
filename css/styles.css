@@ -936,3 +936,11 @@ input, select, textarea { font: inherit; letter-spacing: inherit; color: inherit
   .cat { aspect-ratio: 1; }
   .cat::after { background: linear-gradient(transparent 30%, rgba(0,0,0,.94) 82%); }
 }
+/* pantalla de carga: bloquea el scroll mientras está visible y se adapta al celular */
+html.is-loading, html.is-loading body { overflow: hidden; }
+@media (max-width: 640px) {
+  .loader__in { gap: 20px; padding: 0 16px; }
+  .loader__ring { width: 124px; height: 124px; }
+  .loader__logo { inset: 18px; }
+  .loader__word { font-size: clamp(24px, 8.4vw, 40px); letter-spacing: .1em; }
+}

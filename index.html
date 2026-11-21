@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es-BO">
+<html lang="es-BO" class="is-loading">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -22,12 +22,26 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
-  <link rel="preload" as="image" href="assets/img/bf-40off.webp" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/img/logo.png">
+  <link rel="preload" as="image" href="assets/hero/bf/dp-creatine-200.webp" fetchpriority="high">
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"Store","name":"Bolivia Fitness","url":"https://bolivia-fitness.vercel.app/","description":"Representantes oficiales de suplementos americanos Dragon Pharma y ProSupps en Bolivia.","image":"https://bolivia-fitness.vercel.app/assets/brand/boliviafitness-logo-share.jpg","telephone":"+59175666702","priceRange":"Bs 219 – Bs 949","currenciesAccepted":"BOB","address":{"@type":"PostalAddress","addressCountry":"BO"},"areaServed":["Santa Cruz","La Paz","Cochabamba","Sucre","Oruro","El Alto","Tarija"],"sameAs":["https://www.instagram.com/boliviafitness/","https://www.facebook.com/Boliviafitnessbol/","https://www.tiktok.com/@boliviafitness"]}
   </script>
 </head>
 <body data-page="home">
+  <!-- Pantalla de carga -->
+  <div class="loader" id="loader" aria-hidden="true">
+    <div class="loader__in">
+      <div class="loader__ring">
+        <svg viewBox="0 0 150 150"><circle class="trk" cx="75" cy="75" r="64"/><circle class="bar" id="loaderBar" cx="75" cy="75" r="64"/></svg>
+        <img class="loader__logo" src="assets/img/logo.png" width="106" height="106" alt="">
+      </div>
+      <div class="loader__word"><span style="animation-delay:.05s">B</span><span style="animation-delay:.09s">o</span><span style="animation-delay:.13s">l</span><span style="animation-delay:.17s">i</span><span style="animation-delay:.21s">v</span><span style="animation-delay:.25s">i</span><span style="animation-delay:.29s">a</span><span>&nbsp;</span><span class="r" style="animation-delay:.37s">F</span><span class="r" style="animation-delay:.41s">i</span><span class="r" style="animation-delay:.45s">t</span><span class="r" style="animation-delay:.49s">n</span><span class="r" style="animation-delay:.53s">e</span><span class="r" style="animation-delay:.57s">s</span><span class="r" style="animation-delay:.61s">s</span></div>
+      <div class="loader__pct" id="loaderPct">000%</div>
+    </div>
+  </div>
+  <script src="js/loader.js"></script>
+
   <main id="main">
     <!-- Carrusel principal -->
     <section class="hcar" id="hero" aria-roledescription="carrusel" aria-label="Destacados de Bolivia Fitness">
