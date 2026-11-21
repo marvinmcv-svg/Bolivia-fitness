@@ -53,6 +53,12 @@ const SYN = {
   dp: ["dragon"], dragon: ["dragon"], prosupps: ["prosupps"], ps: ["prosupps"],
   kilo: ["1", "kg"], kg: ["kg"], gramos: ["g"], servicios: ["servicios"], servings: ["servicios"], porciones: ["servicios"], caps: ["capsulas"], capsulas: ["capsulas"],
   chica: ["30"], chiquita: ["30"], pequena: ["30"], mediana: ["60"], grande: ["200"],
+  aminoacido: ["aminoacidos"], aminoacidos: ["aminoacidos"], aminos: ["aminoacidos"], bcaa: ["bcaa"], eaa: ["eaa"], citrulina: ["citrulina"], beta: ["beta"], alanina: ["alanina"],
+  hidratacion: ["hidratacion"], electrolitos: ["hidratacion"], ioniq: ["ioniq"],
+  quemador: ["quemadores"], quemadores: ["quemadores"], quemagrasa: ["quemadores"], definicion: ["quemadores"], carnitina: ["carnitina"], diuretico: ["dry"], cla: ["cla"],
+  salud: ["salud"], vitaminas: ["multi"], multivitaminico: ["multi"], omega: ["omega"], articulaciones: ["joints"], higado: ["liver"], probioticos: ["probioticos"], verdes: ["greens"],
+  accesorio: ["accesorios"], accesorios: ["accesorios"], shaker: ["shaker"], gorra: ["gorra"], gorro: ["gorro"], chulo: ["chulo"], mochila: ["mochila"], vaso: ["tumbler"], termo: ["tumbler"],
+  nuevo: ["nuevo"], nuevos: ["nuevo"], lanzamiento: ["nuevo"], derek: ["derek"], lunsford: ["lunsford"], venom: ["venom"], mangonada: ["mangonada"], cappuccino: ["cappuccino"],
 };
 const STOP = new Set(["de", "la", "el", "los", "las", "un", "una", "unos", "y", "con", "para", "quiero", "me", "das", "dame", "tienen", "hay", "algo", "que", "por", "favor", "porfa", "mi", "una", "del", "en", "o", "a", "tambien"]);
 

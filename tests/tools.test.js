@@ -13,10 +13,13 @@ const call = (ctx, n, a) => runTool(ctx, n, a || {});
 
 test("búsqueda con sinónimos: proteína, pre-entreno, glutamina", () => {
   const ids = (q) => search(q, NOW).map((r) => r.p.id);
-  assert.deepEqual(new Set(ids("proteina")), new Set(["dp-whey-phorm", "dp-iso-phorm"]));
-  assert.deepEqual(ids("pre entreno"), ["dp-venom-inferno"]);
+  const inCat = (c) => new Set(B.products.filter((p) => p.cat === c).map((p) => p.id));
+  assert.deepEqual(new Set(ids("proteina")), inCat("proteinas"));
+  assert.deepEqual(new Set(ids("pre entreno")), inCat("preentrenos"));
+  assert.ok(ids("carnitina").every((id) => /lcarnitine/.test(id)) && ids("carnitina").length === 3);
+  assert.deepEqual(ids("shaker"), ["bf-shaker"]);
   assert.deepEqual(ids("glutamina"), ["dp-glutamine"]);
-  assert.deepEqual(ids("aislada"), ["dp-iso-phorm"]);
+  assert.deepEqual(new Set(ids("aislada")), new Set(["dp-iso-phorm", "dp-iso-phorm-cookies", "dp-iso-phorm-blueberry", "dp-iso-phorm-cinnamon"]));
 });
 test("'sin sabor' solo trae creatinas sin sabor; 'con sabor' las saborizadas", () => {
   const sin = search("creatina sin sabor", NOW).map((r) => r.p);
@@ -43,6 +46,10 @@ test("precio vuelve al regular cuando termina la campaña", () => {
   assert.equal(cat["dp-creatine-200"].price, 800);
   assert.equal(cat["dp-creatine-200"].before, null);
   assert.equal(cat["ps-incredibulk"].price, 590);
+  assert.equal(B.catalog(NOW)["ps-incredibulk"].price, 549);
+  // los lanzamientos no tienen precio "antes": no cambian al terminar la campaña
+  assert.equal(cat["dp-venom-dl"].price, 430);
+  assert.equal(B.catalog(NOW)["dp-venom-dl"].before, null);
 });
 test("cart_add ambiguo devuelve opciones; con tamaño se resuelve", () => {
   const ctx = S();

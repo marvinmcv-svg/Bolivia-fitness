@@ -14,6 +14,11 @@
   "use strict";
 
   const IG = "https://www.instagram.com/p/";
+  // Carpeta de Drive con el catálogo completo de la marca (tarjetas Black Friday y fotos de sucursales)
+  const DRIVE = "https://drive.google.com/drive/folders/1WF946oKR0KDPLAZhBgRSnmWkP7QJesSD";
+  // Producto del catálogo de Drive: imagen en assets/product/<id>.webp
+  const P = (id, line, brand, cat, name, short, size, servings, flavor, price, before, desc, extra) =>
+    Object.assign({ id, line, brand, cat, name, short, size, servings, flavor, price, before, img: "assets/product/" + id + ".webp", desc, src: DRIVE }, before == null ? { noCampaign: true } : {}, extra || {});
 
   const BFIT = {
     config: {
@@ -34,6 +39,7 @@
     brands: {
       dp: { name: "Dragon Pharma", ig: "https://www.instagram.com/dragonpharma_llc/" },
       ps: { name: "ProSupps", ig: "https://www.instagram.com/prosupps/" },
+      bf: { name: "Bolivia Fitness", ig: "https://www.instagram.com/boliviafitness/" },
     },
 
     categories: [
@@ -43,6 +49,10 @@
       { id: "recuperacion", name: "Recuperación" },
       { id: "ellas", name: "Para ellas" },
       { id: "ganadores", name: "Ganadores de masa" },
+      { id: "aminoacidos", name: "Aminoácidos e hidratación" },
+      { id: "quemadores", name: "Quemadores y definición" },
+      { id: "salud", name: "Salud y bienestar" },
+      { id: "accesorios", name: "Accesorios" },
     ],
 
     /* Campaña vigente. Fuente: Df21PuBFsA_ ("hasta 40% de descuento en todos nuestros
@@ -111,8 +121,105 @@
 
       // "INCREDBULK – ProSupps Antes Bs 590" (DflSNzoJeel, promo 1–15 nov ya vencida → se usa el precio regular publicado).
       { id: "ps-incredibulk", line: "ps-incredibulk", brand: "ps", cat: "ganadores", name: "Incredibulk", short: "Incredibulk",
-        size: "16 servicios", servings: 16, flavor: null, price: 590, before: null, noCampaign: true, img: "assets/product/ps-incredibulk.webp",
-        desc: "Ganador de masa de ProSupps: 25 g de proteína por servicio. Precio regular publicado; consultá si tiene precio Black Friday.", src: IG + "DflSNzoJeel/" },
+        size: "16 servicios", servings: 16, flavor: "Chocolate Ice Cream", price: 549, before: 590, img: "assets/product/ps-incredibulk.webp",
+        desc: "Ganador de masa de ProSupps: 25 g de proteína por servicio, sabor Chocolate Ice Cream.", src: DRIVE },
+
+      /* ---------- Catálogo completo de la marca (carpeta de Drive "Bolivia Fitness", 21/11/2026) ----------
+         Cada tarjeta Black Friday trae ANTES / AHORA impresos; "NUEVO PRODUCTO · por lanzamiento" = sin precio antes.
+         Lo que no se lee en la etiqueta queda en null (no se inventa). */
+      // Pre-entrenos
+      P("dp-venom", "dp-venom-extreme", "dp", "preentrenos", "Venom Extreme Potency Pre-Workout", "Venom Grape", "40 servicios", 40, "Grape", 289, 330,
+        "Pre-entreno de potencia extrema: energía y foco con Infinergy y cafeína, pump con Nitrosigine. Según la etiqueta: mejora la resistencia en el entrenamiento.", { star: true }),
+      P("dp-venom-inferno-mangonada", "dp-venom-inferno-mangonada", "dp", "preentrenos", "Venom Inferno Mangonada", "Venom Inferno Mangonada", "20 servicios", 20, "Mangonada", 349, 400,
+        "El Venom Inferno (pre-entreno de alto estímulo) en sabor Mangonada."),
+      P("dp-venom-catalyst", "dp-venom-catalyst", "dp", "preentrenos", "Venom Fully-Loaded Pre-Workout Catalyst", "Venom Fully Loaded", "20 servicios · 491 g", 20, null, 379, 430,
+        "Pre-entreno completo de Dragon Pharma: pump y rendimiento, energía extrema y foco."),
+      P("dp-venom-essential", "dp-venom-essential", "dp", "preentrenos", "Venom Essential", "Venom Essential", "30 servicios", 30, null, 329, 380,
+        "Pre-entreno diario (daily pre-workout formula): energía, foco y pump con óxido nítrico."),
+      P("dp-mr-veinz", "dp-mr-veinz", "dp", "preentrenos", "Mr. Veinz Extreme Pump Catalyst", "Mr. Veinz Mango", "20–40 servicios · 380 g", 40, "Mango", 299, 420,
+        "Pre-entreno de pump extremo (Extreme Pump Catalyst): máxima congestión muscular."),
+      P("ps-hyde-xtreme", "ps-hyde-xtreme", "ps", "preentrenos", "Hyde Xtreme", "Hyde Xtreme Green Apple", "30 servicios · 222 g", 30, "Green Apple", 329, 380,
+        "Pre-entreno de alta energía de ProSupps (hard-hitting energy pre-workout), sabor Green Apple."),
+      P("ps-jekyll-hyde", "ps-jekyll-hyde", "ps", "preentrenos", "Jekyll & Hyde Nightmare", "Jekyll & Hyde Nightmare", "20 + 20 servicios", 40, "Blue Razz + Blood Berry", 399, 450,
+        "Pre-entreno nootrópico + power: dos fórmulas en un envase (Jekyll y Hyde) para tomar por separado o combinadas (Berry Punch)."),
+      P("dp-juicy-pump", "dp-juicy-pump", "dp", "preentrenos", "Juicy Pump Glycerol Pump Matrix", "Juicy Pump Mangonada", "Líquido", null, "Mangonada", 400, null,
+        "Nuevo: matriz de pump con glicerol, sabor Mangonada. Precio por lanzamiento.", { isNew: true }),
+      P("dp-venom-dl", "dp-venom-dl", "dp", "preentrenos", "Venom Derek Lunsford Signature Series", "Venom Sour Gummy · Derek Lunsford", "20 servicios · 491 g", 20, "Sour Gummy", 430, null,
+        "Nuevo: edición firma de Derek Lunsford del Venom (fully-loaded pre-workout catalyst), sabor Sour Gummy. Precio por lanzamiento.", { isNew: true, star: true }),
+      P("dp-venom-essential-dl", "dp-venom-essential-dl", "dp", "preentrenos", "Venom Essential Derek Lunsford", "Venom Essential Sour Gummy · Derek Lunsford", "30 servicios · 481 g", 30, "Sour Gummy", 380, null,
+        "Nuevo: Venom Essential (pre-entreno diario) edición Derek Lunsford, sabor Sour Gummy. Precio por lanzamiento.", { isNew: true }),
+
+      // Proteínas
+      P("dp-whey-phorm-cappuccino", "dp-whey-phorm-cappuccino", "dp", "proteinas", "Whey Phorm Premium Whey Protein Matrix", "Whey Phorm Cappuccino 5 lb", "64 servicios · 5 lb", 64, "Cappuccino", 949, 1000,
+        "Matriz de proteína whey premium, 25 g de proteína por servicio, sabor Cappuccino.", { star: true }),
+      P("dp-whey-phorm-brownie", "dp-whey-phorm-brownie", "dp", "proteinas", "Whey Phorm", "Whey Phorm Double Chocolate Brownie 2 lb", "28 servicios · 2 lb", 28, "Double Chocolate Brownie", 499, 550,
+        "Proteína whey premium, 24 g de proteína por servicio, sabor Double Chocolate Brownie."),
+      P("dp-iso-phorm-cookies", "dp-iso-phorm-cookies", "dp", "proteinas", "Iso Phorm Premium Whey Protein Isolate", "Iso Phorm Cookies & Cream 5 lb", "73 servicios", 73, "Cookies & Cream", 1149, 1200,
+        "Proteína whey aislada premium, 25 g de proteína por servicio, sabor Cookies & Cream."),
+      P("dp-iso-phorm-blueberry", "dp-iso-phorm-blueberry", "dp", "proteinas", "Iso Phorm Premium Whey Protein Isolate", "Iso Phorm Blueberry Ice Cream", "28 servicios", 28, "Blueberry Ice Cream", 599, 650,
+        "Proteína whey aislada premium, 25 g de proteína por servicio, sabor Blueberry Ice Cream."),
+      P("dp-iso-phorm-cinnamon", "dp-iso-phorm-cinnamon", "dp", "proteinas", "Iso Phorm Derek Lunsford Signature Series", "Iso Phorm Cinnamon Roll · Derek Lunsford", "25 servicios", 25, "Cinnamon Roll", 650, null,
+        "Nuevo: proteína whey aislada edición firma de Derek Lunsford, 25 g de proteína por servicio, sabor Cinnamon Roll. Precio por lanzamiento.", { isNew: true, star: true }),
+      P("ps-whey-5lb", "ps-whey-5lb", "ps", "proteinas", "Whey Protein", "Whey ProSupps Rich Chocolate 5 lb", "60 servicios · 2,34 kg", 60, "Rich Chocolate (Ghirardelli)", 949, 1000,
+        "Proteína whey de ProSupps, 24 g de proteína por servicio, chocolate Ghirardelli."),
+      P("ps-whey-2lb", "ps-whey-2lb", "ps", "proteinas", "Whey Protein", "Whey ProSupps Rich Chocolate 2 lb", "30 servicios · 1,17 kg", 30, "Rich Chocolate (Ghirardelli)", 499, 550,
+        "Proteína whey de ProSupps, 24 g de proteína por servicio, chocolate Ghirardelli."),
+      P("ps-whey-vanilla", "ps-whey-vanilla", "ps", "proteinas", "Whey Premium Protein", "Whey ProSupps Vanilla", "69 servicios", 69, "Vanilla", 799, 850,
+        "Proteína premium de ProSupps, 24 g de proteína por servicio, sabor vainilla."),
+
+      // Aminoácidos e hidratación
+      P("dp-beta-alanine", "dp-beta-alanine", "dp", "aminoacidos", "Beta Alanine Essentials", "Beta Alanina DP", "60 servicios · 192 g", 60, "Sin sabor", 249, 290,
+        "Beta alanina, 3,2 g por servicio, sin sabor."),
+      P("dp-l-citrulline", "dp-l-citrulline", "dp", "aminoacidos", "L-Citrulline Essentials", "L-Citrulina DP", "60 servicios · 180 g", 60, "Sin sabor", 289, 330,
+        "L-citrulina, 3 g por servicio, sin sabor."),
+      P("dp-dr-feaar", "dp-dr-feaar", "dp", "aminoacidos", "Dr. Feaar Advanced Full-Spectrum EAA Formula", "Dr. Feaar EAA", "Aminoácidos esenciales", null, null, 299, 350,
+        "Fórmula de aminoácidos esenciales (EAA) de espectro completo. Según la etiqueta: apoya la síntesis de proteína muscular y la recuperación, la capacidad de entrenamiento y la reposición de electrolitos."),
+      P("ps-hydrobcaa-eaa", "ps-hydrobcaa-eaa", "ps", "aminoacidos", "HydroBCAA + EAA", "HydroBCAA + EAA Blue Razz", "30 servicios", 30, "Blue Razz", 269, 320,
+        "Matriz de aminoácidos (BCAA + EAA) con electrolitos, para recuperación y rendimiento."),
+      P("ps-ioniq", "ps-ioniq", "ps", "aminoacidos", "ionIQ Intelligent Hydration", "ionIQ Hidratación Raspberry & Peach", "30 sobres", 30, "Raspberry & Peach", 249, 300,
+        "Hidratación con electrolitos y creatina en sobres individuales: agregá agua y listo."),
+
+      // Quemadores y definición
+      P("dp-black-viper", "dp-black-viper", "dp", "quemadores", "Black Viper", "Black Viper DP", "90 cápsulas", 90, null, 329, 380,
+        "Quemador termogénico con estimulantes. Según la etiqueta: energía, quema de calorías y mejor ánimo y foco."),
+      P("dp-dry-up", "dp-dry-up", "dp", "quemadores", "Dry Up High Potency Diuretic", "Dry Up DP", "80 cápsulas", 80, null, 309, 350,
+        "Diurético de alta potencia sin estimulantes. Según la etiqueta: apoyo diurético natural y ayuda a eliminar el exceso de agua."),
+      P("dp-cla", "dp-cla", "dp", "quemadores", "CLA Human First", "CLA DP", "90 cápsulas blandas", 90, null, 249, 290,
+        "Ácido linoleico conjugado. Según la etiqueta: apoya una composición corporal saludable y el metabolismo."),
+      P("dp-lcarnitine-3000", "dp-lcarnitine-3000", "dp", "quemadores", "L-Carnitine 3000", "L-Carnitina 3000 DP", "32 servicios · líquida", 32, null, 299, 350,
+        "L-carnitina líquida sin estimulantes, 3.000 mg por servicio."),
+      P("ps-lcarnitine-3000", "ps-lcarnitine-3000", "ps", "quemadores", "L-Carnitine 3000 Liquid Shot", "L-Carnitina 3000 ProSupps", "Líquida · 3.000 mg por servicio", null, "Berry", 229, 320,
+        "L-carnitina líquida (energizante metabólico), 3.000 mg por servicio, sabor Berry."),
+      P("ps-lcarnitine-1500", "ps-lcarnitine-1500", "ps", "quemadores", "L-Carnitine 1500 Liquid Shot", "L-Carnitina 1500 ProSupps", "Líquida · 1.500 mg por servicio", null, "Berry", 199, null,
+        "L-carnitina líquida (energizante metabólico), 1.500 mg por servicio, sabor Berry."),
+
+      // Salud y bienestar (línea Human First de Dragon Pharma)
+      P("dp-multi-rx", "dp-multi-rx", "dp", "salud", "Multi RX Human First", "Multi RX DP", "60 tabletas", 60, null, 269, 320,
+        "Multivitamínico de espectro completo con minerales esenciales, para el equilibrio nutricional diario."),
+      P("dp-omega3", "dp-omega3", "dp", "salud", "Omega 3 Human First", "Omega 3 DP", "60 cápsulas blandas", 60, null, 249, 290,
+        "Según la etiqueta: apoya la salud cardiovascular, la función cognitiva y el equilibrio inflamatorio."),
+      P("dp-joints", "dp-joints", "dp", "salud", "Joints Human First", "Joints DP", "60 cápsulas", 60, null, 269, 320,
+        "Según la etiqueta: apoya la función articular, los cartílagos y el tejido conectivo."),
+      P("dp-liver", "dp-liver", "dp", "salud", "Liver Human First", "Liver DP", "90 cápsulas", 90, null, 269, 320,
+        "Según la etiqueta: ayuda a mantener enzimas hepáticas saludables y la función del hígado."),
+      P("dp-tudca", "dp-tudca", "dp", "salud", "TUDCA Human First", "TUDCA DP", "30 cápsulas", 30, null, 320, null,
+        "Según la etiqueta: apoya la salud del hígado, el metabolismo de las grasas y la desintoxicación."),
+      P("dp-probiotics", "dp-probiotics", "dp", "salud", "Pre & Probiotics Human First", "Pre & Probióticos DP", "30 cápsulas", 30, null, 269, 320,
+        "Según la etiqueta: apoya la flora intestinal, una digestión equilibrada y el sistema inmune."),
+      P("dp-greens-reds", "dp-greens-reds", "dp", "salud", "Greens & Reds Organic and Vegan Superfood", "Greens & Reds DP", "Superalimento en polvo", null, null, 329, 380,
+        "Superalimento orgánico y vegano de verduras y frutas. Según la etiqueta: apoya el sistema inmune y la salud digestiva."),
+
+      // Recuperación
+      P("dp-hydra", "dp-hydra", "dp", "recuperacion", "Hydra High-Potency Natural Anabolic", "Hydra DP", "120 cápsulas", 120, null, 359, 430,
+        "Anabólico natural de alta potencia. Según la etiqueta: apoya la síntesis de proteína muscular, la hipertrofia y el pump."),
+
+      // Accesorios (merch oficial)
+      P("bf-shaker", "bf-shaker", "bf", "accesorios", "Shaker exclusivo", "Shaker exclusivo Dragon o ProSupps", "Shaker", null, null, 109, 150, "Shaker exclusivo Dragon Pharma (blanco o negro) o ProSupps."),
+      P("bf-gorra", "bf-gorra", "bf", "accesorios", "Gorra Bolivia Fitness", "Gorra BF", "Gorra", null, "Blanca o negra", 109, 150, "Gorra Bolivia Fitness con el león bordado."),
+      P("bf-chulo", "bf-chulo", "bf", "accesorios", "Chulo Bolivia Fitness", "Chulo BF", "Gorro de lana", null, "Negro o blanco", 109, 150, "Chulo (gorro de lana) Bolivia Fitness."),
+      P("bf-mochila", "bf-mochila", "bf", "accesorios", "Mochila de tiras Bolivia Fitness", "Mochila de tiras BF", "Mochila", null, null, 109, 150, "Mochila de tiras Bolivia Fitness."),
+      P("dp-gorro", "dp-gorro", "dp", "accesorios", "Gorro Dragon", "Gorro Dragon", "Gorro de lana", null, "Negro", 109, 150, "Gorro de lana negro con el logo de Dragon Pharma."),
+      P("dp-tumbler", "dp-tumbler", "dp", "accesorios", "Dragon Tumbler 10 Years", "Dragon Tumbler", "Vaso térmico", null, null, 349, 400, "Vaso térmico Dragon Pharma edición 10 años, con asa y tapa."),
     ],
 
     // "Descubrí nuestras ofertas": solo posts de la campaña vigente
@@ -144,7 +251,15 @@
        - Santa Cruz: horario 11:00–22:00 (post de Facebook de la marca).
        Sin dirección/horario publicados → se muestran sin hora y el pedido va al WhatsApp nacional. */
     branches: [
-      { id: "santa-cruz", name: "Santa Cruz", city: "Santa Cruz", open: "11:00", close: "22:00", whatsapp: "59175666702", hoursSrc: "facebook.com/Boliviafitnessbol" },
+      // Santa Cruz: 4 tiendas (fotos de la carpeta de Drive de la marca)
+      { id: "santa-cruz", name: "Santa Cruz", city: "Santa Cruz", open: "11:00", close: "22:00", whatsapp: "59175666702", hoursSrc: "facebook.com/Boliviafitnessbol", note: "4 tiendas",
+        address: "Ventura Mall (planta baja) · Calle Ñuflo de Chávez #424 · Cine Center (planta baja) · Shopping Fidalga (piso 2)",
+        stores: [
+          { name: "Ventura Mall", addr: "Planta baja", img: "assets/stores/sc-ventura-mall.webp" },
+          { name: "Calle Ñuflo de Chávez #424", addr: "Tienda a la calle", img: "assets/stores/sc-nuflo-de-chavez.webp" },
+          { name: "Cine Center", addr: "Planta baja", img: "assets/stores/sc-cine-center.webp" },
+          { name: "Shopping Fidalga", addr: "Piso 2", img: "assets/stores/sc-shopping-fidalga.webp" },
+        ], src: DRIVE },
       { id: "la-paz", name: "La Paz", city: "La Paz", whatsapp: "59175666702" },
       { id: "el-alto", name: "El Alto", city: "El Alto", whatsapp: "59175666702" },
       { id: "cochabamba", name: "Cochabamba", city: "Cochabamba", note: "2 sucursales", whatsapp: "59175666702" },
@@ -159,7 +274,10 @@
 
     facts: [
       "Bolivia Fitness es representante oficial en Bolivia de los suplementos americanos Dragon Pharma y ProSupps.",
-      "Hay tiendas en Santa Cruz, La Paz, Cochabamba (2 sucursales), Sucre, Oruro, El Alto y Tarija.",
+      "Hay tiendas en Santa Cruz (4 tiendas), La Paz, Cochabamba (2 sucursales), Sucre, Oruro, El Alto y Tarija.",
+      "Santa Cruz tiene 4 tiendas: Ventura Mall (planta baja), Calle Ñuflo de Chávez #424, Cine Center (planta baja) y Shopping Fidalga (piso 2). Horario publicado: 11:00 a 22:00.",
+      "Catálogo completo: creatinas, proteínas (Whey Phorm, Iso Phorm, Whey ProSupps), pre-entrenos (familia Venom, Mr. Veinz, Hyde Xtreme, Jekyll & Hyde), aminoácidos e hidratación, quemadores (Black Viper, L-carnitina, CLA, Dry Up), la línea de salud Human First de Dragon Pharma y accesorios oficiales.",
+      "Nuevos productos por lanzamiento (edición Derek Lunsford): Venom Sour Gummy Bs 430, Venom Essential Sour Gummy Bs 380 e Iso Phorm Cinnamon Roll Bs 650; también Juicy Pump Mangonada Bs 400.",
       "Los productos son originales, con registro SENASAG y sello de autenticidad.",
       "Hacen envíos gratis a domicilio y envíos a nivel nacional.",
       "Black Friday: hasta 40% de descuento del 16 al 30 de noviembre de 2026, y 1 accesorio gratis por cualquier compra, en todas las sucursales y por delivery.",
@@ -226,7 +344,7 @@
         price, before, save: before ? before - price : 0,
         off: before ? Math.round((1 - price / before) * 100) : 0,
         perServing: p.servings ? Math.round((price / p.servings) * 100) / 100 : null,
-        desc: p.desc, img: p.img, star: !!p.star, src: p.src,
+        desc: p.desc, img: p.img, star: !!p.star, isNew: !!p.isNew, src: p.src,
       };
     }
     return out;

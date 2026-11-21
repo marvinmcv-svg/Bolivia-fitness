@@ -8,36 +8,39 @@
   (function carousel() {
     const track = $("#hcarTrack"), bars = $("#hcarBars"), root = $("#hero");
     const bf = B.campaignActive(), cp = (id) => P(id);
-    const all = Object.values(CAT);
-    const minCrea = Math.min(...all.filter((p) => p.cat === "creatinas").map((p) => p.price));
-    const venom = cp("dp-venom-inferno"), whey = cp("dp-whey-phorm"), crea200 = cp("dp-creatine-200");
-    const was = (p) => (p.before ? ' <s>' + money(p.before) + "</s>" : "");
     const img = (src, w, h, eager) => '<img src="' + src + '" width="' + w + '" height="' + h + '" alt="" ' + (eager ? 'fetchpriority="high"' : 'loading="lazy"') + ' decoding="async">';
+    // abanico de 3 tarjetas reales del catálogo (fotos de la marca, 4:5); cada una lleva a su producto
+    const fan = (ids, eager) => '<div class="hs__fan">' + ids.map((id, i) => { const p = cp(id);
+      return '<a class="hs__fcard hs__fcard--' + i + '" href="' + X.url.product(id) + '" aria-label="' + esc(p.short + " · " + money(p.price)) + '">' + img("assets/hero/bf/" + id + ".webp", 864, 1080, eager && i === 1) +
+        '<span class="hs__fprice"><b>' + money(p.price) + "</b>" + (p.before ? "<s>" + money(p.before) + "</s>" : p.isNew ? "<i>Nuevo</i>" : "") + "</span></a>"; }).join("") + "</div>";
+    const all = Object.values(CAT), inCat = (c) => all.filter((p) => p.cat === c);
+    const minOf = (c) => Math.min(...inCat(c).map((p) => p.price));
+    const launches = all.filter((p) => p.isNew);
     const SL = [
       bf && { id: "bf", theme: "bf", eyebrow: "Black Friday · 16 al 30 de noviembre", title: "Hasta <b>" + B.campaign.upTo + "% OFF</b>",
-        text: "En todos nuestros productos americanos, y 1 accesorio gratis por cualquier compra.", extra: '<div class="hs__cd" data-cd></div>',
+        text: "En " + all.filter((p) => p.before).length + " productos americanos originales, y 1 accesorio gratis por cualquier compra.", extra: '<div class="hs__cd" data-cd></div>',
         ctas: '<a class="btn btn--gold btn--lg" href="ofertas.html">Comprar ofertas <span class="arrow">→</span></a><a class="btn btn--ghost btn--lg" href="tienda.html">Ver la tienda</a>',
-        media: '<div class="hs__card hs__card--post">' + img("assets/img/bf-40off.webp", 900, 1125, true) + "</div>" },
-      { id: "crea", theme: "red", eyebrow: "Creatinas Dragon Pharma y ProSupps", title: "Creatina desde <b>" + money(minCrea) + "</b>",
-        text: "100% micronizada, 5 g por servicio. La de 200 servicios te dura meses: " + money(crea200.perServing) + " por servicio.",
-        ctas: '<a class="btn btn--lg" href="' + X.url.shop("cat=creatinas") + '">Ver creatinas <span class="arrow">→</span></a><button class="btn btn--ghost btn--lg" data-add="dp-creatine-200">Agregar 200 servicios</button>',
-        media: '<div class="hs__card hs__card--post">' + img("assets/img/bf-creatinas.webp", 900, 1125) + "</div>" },
-      { id: "venom", theme: "fire", eyebrow: "Pre-entreno · Dragon Pharma", title: "Venom Inferno a <b>" + money(venom.price) + "</b>",
-        text: "El pre-entreno de Dragon Pharma" + (venom.before ? ", antes " + money(venom.before) + "." : ".") + " Energía y foco para tus días pesados.",
-        ctas: '<button class="btn btn--lg" data-add="dp-venom-inferno">Agregar a la bolsa</button><a class="btn btn--ghost btn--lg" href="' + X.url.product("dp-venom-inferno") + '">Ver producto</a>',
-        media: '<div class="hs__card hs__card--reel"><video muted playsinline loop preload="none" poster="assets/video/venom-299.webp"><source src="assets/video/venom-299.mp4" type="video/mp4"></video></div>' },
-      { id: "coach", theme: "coach", eyebrow: "Nuevo · LeonIA Coach", title: "Tu coach con <b>IA</b>, gratis",
+        media: fan(["dp-iso-phorm-cookies", "dp-creatine-200", "dp-venom-inferno-mangonada"], true) },
+      launches.length && { id: "new", theme: "gold", eyebrow: "Nuevo · edición Derek Lunsford", title: "Recién <b>llegados</b>",
+        text: "Venom y Venom Essential Sour Gummy, e Iso Phorm Cinnamon Roll, a precio de lanzamiento desde " + money(Math.min(...launches.map((p) => p.price))) + ".",
+        ctas: '<a class="btn btn--lg" href="' + X.url.shop("q=nuevo") + '">Ver lanzamientos <span class="arrow">→</span></a><button class="btn btn--ghost btn--lg" data-add="dp-venom-dl">Agregar Venom DL</button>',
+        media: fan(["dp-venom-essential-dl", "dp-venom-dl", "dp-iso-phorm-cinnamon"]) },
+      { id: "pre", theme: "fire", eyebrow: inCat("preentrenos").length + " pre-entrenos · Dragon Pharma y ProSupps", title: "Pre-entrenos desde <b>" + money(minOf("preentrenos")) + "</b>",
+        text: "La familia Venom completa, Mr. Veinz para un pump extremo y Hyde Xtreme. ¿No sabés cuál? LeonIA te ayuda a elegir.",
+        ctas: '<a class="btn btn--lg" href="' + X.url.shop("cat=preentrenos") + '">Ver pre-entrenos <span class="arrow">→</span></a><button class="btn btn--ghost btn--lg" data-open-chat data-ask="¿Qué pre-entreno me conviene?">Elegir con LeonIA</button>',
+        media: fan(["dp-mr-veinz", "dp-venom", "ps-hyde-xtreme"]) },
+      { id: "coach", theme: "coach", eyebrow: "LeonIA Coach · gratis", title: "Tu coach con <b>IA</b>",
         text: "Contale tu objetivo y te arma rutina, proteína diaria y suplementos para tu presupuesto. Por texto o por voz, 24/7.",
         ctas: '<button class="btn btn--lg" data-open-chat data-ask="Armá mi plan de entrenamiento">Armar mi plan <span class="arrow">→</span></button><button class="btn btn--ghost btn--lg" data-open-chat data-ask="¿Qué sucursales están abiertas ahora?">Preguntar a LeonIA</button>',
         media: '<div class="hs__leon" id="hcarLeon" data-state="idle">' + img("assets/brand/logo-1024.webp", 512, 512) + "</div>" },
-      { id: "whey", theme: "gold", eyebrow: "Proteína · Whey Phorm", title: "25 g de proteína <b>por servicio</b>",
-        text: whey.short + ", " + whey.size + ": " + money(whey.price) + (whey.before ? " (antes " + money(whey.before) + ")" : "") + ".",
-        ctas: '<button class="btn btn--lg" data-add="dp-whey-phorm">Agregar a la bolsa</button><a class="btn btn--ghost btn--lg" href="' + X.url.shop("cat=proteinas") + '">Ver proteínas</a>',
-        media: '<div class="hs__card hs__card--wide">' + img("assets/hero/slide-whey.webp", 1000, 750) + "</div>" },
-      { id: "stores", theme: "dark", eyebrow: "7 ciudades · envío gratis a domicilio", title: "Originales, <b>cerca tuyo</b>",
-        text: "Registro SENASAG y sello de autenticidad. Retirá en tu sucursal o recibilo gratis en tu casa; enviamos a toda Bolivia.",
+      { id: "prot", theme: "red", eyebrow: inCat("proteinas").length + " proteínas · whey y aislada", title: "Proteína desde <b>" + money(minOf("proteinas")) + "</b>",
+        text: "Whey Phorm, Iso Phorm y Whey ProSupps: 24–25 g de proteína por servicio, en 2 y 5 libras y sabores que dan ganas.",
+        ctas: '<a class="btn btn--lg" href="' + X.url.shop("cat=proteinas") + '">Ver proteínas <span class="arrow">→</span></a><button class="btn btn--ghost btn--lg" data-open-chat data-ask="¿Cuánta proteína necesito y cuál me conviene?">¿Cuál me conviene?</button>',
+        media: fan(["ps-whey-5lb", "dp-whey-phorm-cappuccino", "dp-iso-phorm-blueberry"]) },
+      { id: "stores", theme: "dark", eyebrow: "Santa Cruz · 4 tiendas", title: "Vení a <b>conocernos</b>",
+        text: "Ventura Mall, Cine Center, Shopping Fidalga y Ñuflo de Chávez #424. También en La Paz, El Alto, Cochabamba, Sucre, Oruro y Tarija, con envío gratis a domicilio.",
         ctas: '<a class="btn btn--lg" href="sucursales.html">Ver sucursales <span class="arrow">→</span></a><a class="btn btn--ghost btn--lg" href="tienda.html">Comprar online</a>',
-        media: '<div class="hs__card hs__card--post">' + img("assets/img/expocruz.webp", 900, 1200) + "</div>" },
+        media: '<div class="hs__stores">' + ["sc-ventura-mall", "sc-shopping-fidalga", "sc-cine-center"].map((s, i) => '<span class="hs__store hs__store--' + i + '">' + img("assets/stores/" + s + ".webp", 900, 1600) + "</span>").join("") + "</div>" },
     ].filter(Boolean);
     const n = SL.length;
     track.innerHTML = SL.map((sl, i) => '<article class="hs hs--' + sl.theme + '" data-id="' + sl.id + '" role="group" aria-roledescription="diapositiva" aria-label="' + (i + 1) + " de " + n + '">' +
@@ -91,7 +94,8 @@
   })();
 
   // Categorías
-  const IMG = { creatinas: "dp-creatine-200", proteinas: "dp-whey-phorm", preentrenos: "dp-venom-inferno", recuperacion: "dp-glutamine", ellas: "dp-fema-trope", ganadores: "ps-incredibulk" };
+  const IMG = { creatinas: "dp-creatine-200", proteinas: "dp-whey-phorm-cappuccino", preentrenos: "dp-venom-inferno", recuperacion: "dp-hydra", ellas: "dp-fema-trope", ganadores: "ps-incredibulk",
+    aminoacidos: "dp-l-citrulline", quemadores: "dp-black-viper", salud: "dp-multi-rx", accesorios: "bf-shaker" };
   $("#cats").innerHTML = B.categories.filter((c) => Object.values(CAT).some((p) => p.cat === c.id)).map((c) => {
     const n = Object.values(CAT).filter((p) => p.cat === c.id).length, from = Math.min(...Object.values(CAT).filter((p) => p.cat === c.id).map((p) => p.price));
     return '<a class="cat" href="' + X.url.shop("cat=" + c.id) + '"><img src="' + esc(P(IMG[c.id]).img) + '" width="720" height="720" alt="" loading="lazy"><span><span>' + esc(c.name) + "<small>" + n + (n === 1 ? " producto" : " productos") + " · desde " + money(from) + '</small></span><span class="arrow">→</span></span></a>';

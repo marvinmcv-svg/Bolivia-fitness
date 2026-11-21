@@ -30,19 +30,20 @@ const GUIDES = {
     precauciones: "Si tenés enfermedad renal, consultá a tu médico.",
   },
   proteina: {
-    lineas: ["dp-whey-phorm", "dp-iso-phorm"],
+    lineas: ["dp-whey-phorm", "dp-iso-phorm", "dp-whey-phorm-cappuccino", "dp-whey-phorm-brownie", "dp-iso-phorm-cookies", "dp-iso-phorm-blueberry", "dp-iso-phorm-cinnamon", "ps-whey-5lb", "ps-whey-2lb", "ps-whey-vanilla"],
     para_que: "Te ayuda a llegar a tu proteína diaria, que es lo que realmente construye y conserva músculo. No es obligatoria: es comida práctica.",
     como_usar: [
       "1 servicio ≈ 25 g de proteína. Usala cuando la comida no te alcance para llegar a tu meta diaria.",
       "Momento práctico: después de entrenar o como colación. El total del día importa más que el minuto exacto.",
       "Repartí la proteína en 3–5 comidas de ~0,3–0,4 g/kg cada una.",
     ],
+    elegir: "Para durar: Whey Phorm 5 lb (64 servicios) o Whey ProSupps 5 lb (60). Para probar: las de 2 lb. Iso Phorm 5 lb (73 servicios) es la aislada más rendidora.",
     whey_vs_iso: "Whey Phorm (concentrada) es la opción más rendidora por precio. Iso Phorm (aislada) tiene menos lactosa y grasa: mejor si la leche te cae pesada o estás en definición. Ninguna es apta para alergia a la proteína de leche.",
     que_esperar: "Por sí sola no te hace crecer: funciona sumada al entrenamiento y a comer suficiente.",
     precauciones: "Contiene leche. Enfermedad renal: consultá antes de subir mucho la proteína.",
   },
   preentreno: {
-    lineas: ["dp-venom"],
+    lineas: ["dp-venom", "dp-venom-extreme", "dp-venom-inferno-mangonada", "dp-venom-catalyst", "dp-venom-essential", "dp-venom-dl", "dp-venom-essential-dl", "ps-hyde-xtreme", "ps-jekyll-hyde", "dp-mr-veinz", "dp-juicy-pump"],
     para_que: "Energía, foco y ganas de entrenar fuerte. Útil en días pesados o si entrenás cansado después del trabajo.",
     como_usar: [
       "Seguí la dosis de la etiqueta del Venom Inferno. La primera vez empezá con medio servicio para ver cómo lo tolerás.",
@@ -51,7 +52,8 @@ const GUIDES = {
       "No lo combines con café, energizantes ni otros estimulantes el mismo día.",
     ],
     que_esperar: "Puede dar hormigueo en la piel (normal en muchos pre-entrenos) y más energía en la sesión.",
-    precauciones: "Tiene estimulantes. No apto para menores de 18, embarazo o lactancia, presión alta, problemas cardíacos, ansiedad o si sos sensible a la cafeína. La cantidad de cafeína por servicio no está publicada por la tienda: leela en la etiqueta.",
+    sin_estimulantes: "Si entrenás de noche o no tolerás la cafeína: Mr. Veinz y Juicy Pump están enfocados en el pump; la cantidad de estimulantes no está publicada por la tienda, así que revisá la etiqueta o consultá en la sucursal.",
+    precauciones: "La mayoría tiene estimulantes (Venom, Venom Inferno, Hyde Xtreme, Jekyll & Hyde). No apto para menores de 18, embarazo o lactancia, presión alta, problemas cardíacos, ansiedad o si sos sensible a la cafeína. La cantidad de cafeína por servicio no está publicada por la tienda: leela en la etiqueta.",
   },
   glutamina: {
     lineas: ["dp-glutamine"],
@@ -77,6 +79,37 @@ const GUIDES = {
     que_esperar: "Es un complemento: los resultados vienen del entrenamiento, la proteína y el descanso.",
     precauciones: "Los ingredientes detallados no están publicados por la tienda: revisá la etiqueta. Embarazo, lactancia o medicación: consultá a un profesional.",
   },
+  aminoacidos: {
+    lineas: ["dp-beta-alanine", "dp-l-citrulline", "dp-dr-feaar", "ps-hydrobcaa-eaa", "ps-ioniq"],
+    para_que: "Beta alanina: más resistencia en series largas. L-citrulina: más pump y flujo de sangre. EAA/BCAA (Dr. Feaar, HydroBCAA+EAA): aminoácidos para tomar durante el entrenamiento. ionIQ: hidratación con electrolitos y creatina.",
+    como_usar: [
+      "Beta alanina: la dosis de la etiqueta todos los días; el hormigueo en la piel es normal y no hace daño.",
+      "L-citrulina: 30–60 min antes de entrenar.",
+      "EAA / BCAA: durante el entrenamiento, mezclado con agua.",
+      "ionIQ: 1 sobre en agua en días de calor o entrenamientos largos.",
+    ],
+    que_esperar: "Honestidad: si ya comés suficiente proteína, los EAA/BCAA suman poco al músculo; sirven más para entrenar en ayunas o como bebida durante la sesión. La citrulina y la beta alanina tienen buena evidencia para rendimiento.",
+    precauciones: "Seguí la dosis de la etiqueta.",
+  },
+  quemadores: {
+    lineas: ["dp-black-viper", "dp-dry-up", "dp-cla", "dp-lcarnitine-3000", "ps-lcarnitine-3000", "ps-lcarnitine-1500"],
+    para_que: "Apoyan una etapa de definición, pero lo que baja la grasa es el déficit calórico, el entrenamiento y los pasos diarios.",
+    como_usar: [
+      "Black Viper (termogénico con estimulantes): según la etiqueta, por la mañana; nunca de noche ni con café o pre-entrenos.",
+      "L-carnitina líquida: antes del cardio o del entrenamiento.",
+      "CLA: con las comidas, según la etiqueta.",
+      "Dry Up (diurético sin estimulantes): solo por períodos cortos y tomando bastante agua.",
+    ],
+    que_esperar: "Honestidad: ninguno hace milagros. Con dieta y entrenamiento ordenados pueden ayudar un poco con la energía o la retención de líquidos.",
+    precauciones: "Black Viper tiene estimulantes: no apto para menores de 18, embarazo, presión alta, problemas cardíacos o ansiedad. Los diuréticos no se usan de forma continua; con medicación o problemas renales, consultá a un médico.",
+  },
+  salud: {
+    lineas: ["dp-multi-rx", "dp-omega3", "dp-joints", "dp-liver", "dp-tudca", "dp-probiotics", "dp-greens-reds", "dp-hydra"],
+    para_que: "Línea Human First de Dragon Pharma: multivitamínico, omega 3, articulaciones, hígado (Liver, TUDCA), digestión (pre y probióticos) y superalimento de verduras (Greens & Reds). Hydra es un anabólico natural.",
+    como_usar: ["Tomalos con comida y según la etiqueta.", "Para la mayoría de la gente que entrena, lo más útil es el multivitamínico y el omega 3."],
+    que_esperar: "Son complementos de bienestar: no reemplazan una alimentación variada.",
+    precauciones: "Con medicación (en especial anticoagulantes con el omega 3) o enfermedades del hígado: consultá a tu médico antes.",
+  },
 };
 const LINE_TO_GUIDE = {};
 for (const [k, g] of Object.entries(GUIDES)) for (const l of g.lineas) LINE_TO_GUIDE[l] = k;
@@ -87,6 +120,10 @@ const TOPIC_ALIASES = {
   glutamina: "glutamina", glutamine: "glutamina",
   ganador: "ganador", gainer: "ganador", incredibulk: "ganador", masa: "ganador",
   fema: "ellas", "fema trope": "ellas", mujer: "ellas",
+  citrulina: "aminoacidos", alanina: "aminoacidos", beta: "aminoacidos", eaa: "aminoacidos", bcaa: "aminoacidos", aminoacido: "aminoacidos", feaar: "aminoacidos", ioniq: "aminoacidos", hidratacion: "aminoacidos",
+  quemador: "quemadores", carnitina: "quemadores", viper: "quemadores", cla: "quemadores", diuretico: "quemadores", "dry up": "quemadores",
+  omega: "salud", multi: "salud", vitamina: "salud", joints: "salud", articulacion: "salud", liver: "salud", higado: "salud", tudca: "salud", probiotico: "salud", greens: "salud", hydra: "salud",
+  veinz: "preentreno", hyde: "preentreno", jekyll: "preentreno", pump: "preentreno",
 };
 
 /* ---------- objetivos ---------- */
@@ -328,7 +365,7 @@ const S = (props, req) => ({ type: "object", properties: props, required: req ||
 const COACH_SCHEMAS = [
   ["coach_plan", "LeonIA Coach: plan personalizado (rutina semanal por días, principios, proteína y calorías orientativas, y stack de suplementos con precios reales y costo mensual). Usalo cuando el cliente cuente su objetivo.",
     S({ goal: { type: "string", enum: Object.keys(GOALS), description: "musculo | fuerza | definicion | subir_peso | principiante | tonificar | energia" }, days_per_week: { type: "integer", minimum: 2, maximum: 6 }, level: { type: "string", enum: ["principiante", "intermedio", "avanzado"] }, weight_kg: { type: "number", description: "Peso en kg si lo dijo" }, budget_bs: { type: "number", description: "Presupuesto en Bs si lo dijo" } }, ["goal"])],
-  ["supplement_guide", "Cómo usar un suplemento: para qué sirve, cómo y cuándo tomarlo, qué esperar, mitos, duración del envase y precauciones. Temas: creatina, proteina, preentreno, glutamina, ganador, ellas, o un producto.",
+  ["supplement_guide", "Cómo usar un suplemento: para qué sirve, cómo y cuándo tomarlo, qué esperar, mitos, duración del envase y precauciones. Temas: creatina, proteina, preentreno, glutamina, ganador, ellas, aminoacidos, quemadores, salud, o un producto.",
     S({ topic: str("Tema o nombre del producto"), item: str("id del producto (opcional)") })],
   ["protein_calc", "Calcula la proteína diaria, por comida y agua según el peso y el objetivo.", S({ weight_kg: { type: "number" }, goal: str("Objetivo (opcional)") }, ["weight_kg"])],
   ["get_services", "Servicios de la tienda: envíos, retiro, pedido por WhatsApp, coach, autenticidad, campaña, pago y redes.", S({})],

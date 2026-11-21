@@ -121,7 +121,7 @@
   const footHTML = (p) => (cart[p.id] ? qtyHTML(p, cart[p.id]) : '<button class="add" data-add="' + p.id + '" aria-label="Agregar ' + esc(p.short) + ' a la bolsa">' + ICON.plus + "</button>");
   function refreshFoots() { $$("[data-foot]").forEach((el) => { const p = P(el.dataset.foot); if (p) el.innerHTML = footHTML(p); }); }
   function productCard(p) {
-    return '<article class="pcard"><a class="pcard__img" href="' + url.product(p.id) + '" tabindex="-1" aria-hidden="true"><img src="' + esc(p.img) + '" width="720" height="720" alt="" loading="lazy">' + (p.off ? '<span class="pcard__badge">-' + p.off + "%</span>" : "") + "</a>" +
+    return '<article class="pcard"><a class="pcard__img" href="' + url.product(p.id) + '" tabindex="-1" aria-hidden="true"><img src="' + esc(p.img) + '" width="720" height="720" alt="" loading="lazy">' + (p.off ? '<span class="pcard__badge">-' + p.off + "%</span>" : p.isNew ? '<span class="pcard__badge pcard__badge--new">Nuevo</span>' : "") + "</a>" +
       '<div class="pcard__body"><span class="pcard__brand">' + esc(p.brand) + '</span><h3 class="pcard__name"><a href="' + url.product(p.id) + '">' + esc(p.short) + "</a></h3>" +
       '<p class="pcard__meta">' + esc(p.size) + (p.flavor && p.flavor !== "Sin sabor" ? " · " + esc(p.flavor) : "") + "</p>" +
       '<div class="pcard__foot"><div class="price"><b>' + money(p.price) + "</b>" + (p.before ? "<s>" + money(p.before) + "</s>" : "") + (p.perServing ? "<small>" + money(p.perServing) + " / servicio</small>" : "") + '</div><div data-foot="' + p.id + '">' + footHTML(p) + "</div></div></div></article>";
