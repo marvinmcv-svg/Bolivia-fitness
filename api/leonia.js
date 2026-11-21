@@ -5,8 +5,10 @@
 const { runTool, anthropicTools, openaiTools, createSession, isYes } = require("./_tools");
 const { SYSTEM, liveContext } = require("./_prompt");
 const { egg } = require("./_persona");
+const B = require("../js/data.js");
 
 const MAX_ROUNDS = 6;
+const TERMINAL = new Set(["show_options", "request_location", "handoff_to_human"]);
 const hits = new Map();
 function rateLimited(ip) {
   const now = Date.now(), arr = (hits.get(ip) || []).filter((t) => now - t < 60000);
@@ -110,7 +112,12 @@ async function runNvidia({ ctx, history, channel, send, tool, tw, env }) {
   const messages = [{ role: "system", content: SYSTEM + "\n\n" + liveContext(ctx, channel) }].concat(history);
   for (let round = 0; round < MAX_ROUNDS; round++) {
     tw.newRound();
-    const stream = await client.chat.completions.create({ model, messages, tools: openaiTools(), tool_choice: "auto", stream: true, temperature: 0.4, max_tokens: channel === "voice" ? 600 : 1200 });
+    // Nemotron razona en reasoning_content (no se muestra). Con razonamiento sigue las reglas mucho mejor
+    // (sin esto agregaba a la bolsa sin permiso y filtraba notas internas), así que va activado por defecto.
+    // LEONIA_THINKING=off lo desactiva.
+    const think = env.LEONIA_THINKING !== "off";
+    const stream = await client.chat.completions.create({ model, messages, tools: openaiTools(), tool_choice: "auto", stream: true,
+      temperature: think ? 0.6 : 0.4, top_p: 0.95, max_tokens: think ? 6000 : 900, chat_template_kwargs: { enable_thinking: think } });
     const calls = []; let text = "";
     const write = thinkFilter((t) => { text += t; tw.write(t); });
     for await (const chunk of stream) {
@@ -125,13 +132,29 @@ async function runNvidia({ ctx, history, channel, send, tool, tw, env }) {
     }
     const real = calls.filter(Boolean).map((c, i) => Object.assign(c, { id: c.id || "call_" + round + "_" + i }));
     if (!real.length) break;
+    const terminal = real.every((c) => TERMINAL.has(c.name));
     messages.push({ role: "assistant", content: text || null, tool_calls: real.map((c) => ({ id: c.id, type: "function", function: { name: c.name, arguments: c.args || "{}" } })) });
     for (const c of real) {
       let args; try { args = JSON.parse(c.args || "{}"); } catch (e) { args = null; }
       const result = args ? tool(c.name, args) : { error: "Argumentos JSON inválidos." };
       messages.push({ role: "tool", tool_call_id: c.id, content: JSON.stringify(result) });
     }
+    // Botones/ubicación/derivación cierran el turno: otra ronda solo repetiría el mensaje.
+    if (terminal && text.trim()) break;
   }
+}
+
+/* Si el modelo terminó sin botones, se ofrecen los que corresponden a la etapa (nunca los de bienvenida a mitad de charla). */
+function fallbackOptions(ctx) {
+  const st = ctx.state, o = st.order, hasCart = Object.keys(st.cart).length > 0, used = ctx.used;
+  if (st.stage === "awaiting_confirmation" || ctx.autoPlaced || st.stage === "placed") return null;
+  if (used.has("coach_plan") && !used.has("cart_add")) return ["Agregar el stack a la bolsa", "Ver la rutina completa", "Cómo tomar cada uno"];
+  if (hasCart && !o.service) return ["Delivery a domicilio", "Retiro en sucursal", "Envío a otra ciudad"];
+  if (hasCart && o.service && !o.branch && o.service !== "national") return B.branches.slice(0, 4).map((b) => b.name);
+  if (used.has("supplement_guide")) return ["Agregar a la bolsa", "Armá mi plan", "¿Qué más me conviene?"];
+  if (used.has("get_branches") || used.has("get_services")) return ["Ver promos", "Armá mi plan", "Hablar con una persona"];
+  if (st.profile && st.profile.goal && !used.has("coach_plan")) return null; // está juntando datos para el plan: que responda libre
+  return null;
 }
 
 async function handler(req, res, opts) {
@@ -152,7 +175,8 @@ async function handler(req, res, opts) {
   res.setHeader("Content-Type", "application/x-ndjson; charset=utf-8");
   res.setHeader("Cache-Control", "no-store");
   res.setHeader("X-Accel-Buffering", "no");
-  const send = (ev) => { try { res.write(JSON.stringify(ev) + "\n"); } catch (e) { /* cliente cerró */ } };
+  let sentOptions = false;
+  const send = (ev) => { if (ev.type === "options") sentOptions = true; try { res.write(JSON.stringify(ev) + "\n"); } catch (e) { /* cliente cerró */ } };
   const flush = () => { while (ctx.events.length) send(ctx.events.shift()); };
 
   /* Guardia 1: la confirmación la aplica el servidor, no el modelo. */
@@ -164,8 +188,10 @@ async function handler(req, res, opts) {
     if (name === "place_order") {
       if (!(saidYes && tokenAtStart && args && args.token === tokenAtStart)) return { error: "Bloqueado: el pedido se envía solo cuando el cliente responde 'sí' a un resumen mostrado antes. Mostrá el resumen con prepare_order y esperá su respuesta." };
     }
+    ctx.used.add(name);
     const r = runTool(ctx, name, args); flush(); return r;
   };
+  ctx.used = new Set();
   const tw = textWriter(send);
   const hint = egg(lastUser);
   if (hint) ctx.eggHint = hint;
@@ -180,6 +206,7 @@ async function handler(req, res, opts) {
     else send({ type: "error", kind: err && err.status === 429 ? "rate_limited" : "upstream" });
   }
   flush();
+  if (!sentOptions && tw.text.trim()) { const o = fallbackOptions(ctx); if (o) send({ type: "options", options: o }); }
   send({ type: "state", state: ctx.state });
   res.end();
 }

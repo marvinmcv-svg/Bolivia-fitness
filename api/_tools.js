@@ -4,6 +4,7 @@
 "use strict";
 const crypto = require("crypto");
 const B = require("../js/data.js");
+const { COACH_SCHEMAS, COACH_TOOLS, GOALS } = require("./_coach");
 
 const MAX_LINES = 30, MAX_QTY = 50;
 const norm = (s) => String(s == null ? "" : s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9.\s]/g, " ").replace(/\s+/g, " ").trim();
@@ -128,8 +129,15 @@ function sanitizeState(raw, now) {
     stage: ["browsing", "awaiting_confirmation", "placed"].includes(s.stage) ? s.stage : "browsing",
     token: typeof s.token === "string" && /^[a-f0-9]{16}$/.test(s.token) ? s.token : null,
     placed: s.placed && typeof s.placed === "object" && typeof s.placed.id === "string" ? { id: s.placed.id.slice(0, 12), token: String(s.placed.token || "").slice(0, 16), branch: s.placed.branch || null, total: +s.placed.total || 0, url: typeof s.placed.url === "string" && s.placed.url.startsWith("https://wa.me/") ? s.placed.url : null, at: s.placed.at || null } : null,
-    upsold: !!s.upsold, newsShown: !!s.newsShown, history,
+    upsold: !!s.upsold, newsShown: !!s.newsShown, history, profile: cleanProfile(s.profile),
   };
+}
+
+function cleanProfile(p) {
+  if (!p || typeof p !== "object") return null;
+  const out = { goal: GOALS[p.goal] ? p.goal : null, days: Number.isInteger(p.days) && p.days >= 2 && p.days <= 6 ? p.days : null,
+    level: ["principiante", "intermedio", "avanzado"].includes(p.level) ? p.level : null, weight_kg: +p.weight_kg > 30 && +p.weight_kg < 250 ? Math.round(+p.weight_kg) : null };
+  return Object.values(out).some((v) => v != null) ? out : null;
 }
 
 /* ---------- sesión ---------- */
@@ -177,7 +185,7 @@ T.get_item_details = (ctx, { item }) => {
     otras_presentaciones: Object.values(cat).filter((x) => x.line === p.line && x.id !== p.id).map(brief),
     promo: B.campaignActive(ctx.now) && p.before ? "Precio Black Friday hasta el " + B.campaign.to + " (antes " + money(p.before) + "). " + B.campaign.gift + "." : null,
     alergenos: "No tenemos información de alérgenos publicada: consultá en la sucursal antes de comprar.",
-    salud: "No damos consejos médicos ni de dosis; ante embarazo, medicación o condiciones de salud, consultá con un profesional.",
+    salud: "Para cómo tomarlo usá supplement_guide. Ante embarazo, medicación o condiciones de salud, consultá con un profesional.",
     fuente: p.src,
   });
 };
@@ -421,6 +429,8 @@ const SCHEMAS = [
   ["show_options", "Muestra 2–4 botones de respuesta rápida.", S({ options: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 4 } }, ["options"])],
   ["log_miss", "Registra algo que el cliente pidió y no existe.", S({ text: str("Pedido"), reason: str("Motivo") }, ["text"])],
 ];
+SCHEMAS.push(...COACH_SCHEMAS);
+Object.assign(T, COACH_TOOLS);
 const anthropicTools = () => SCHEMAS.map(([name, description, input_schema]) => ({ name, description, input_schema, eager_input_streaming: true }));
 const openaiTools = () => SCHEMAS.map(([name, description, parameters]) => ({ type: "function", function: { name, description, parameters } }));
 

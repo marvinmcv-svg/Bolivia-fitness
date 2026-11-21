@@ -76,8 +76,8 @@
       '<div><h3>Bolivia Fitness</h3><ul><li><a href="nosotros.html">Nosotros</a></li><li><a href="nosotros.html#comunidad">Comunidad</a></li><li><a href="' + B.config.instagram + '" target="_blank" rel="noopener">Instagram</a></li><li><a href="' + B.config.facebook + '" target="_blank" rel="noopener">Facebook</a></li><li><a href="' + B.config.tiktok + '" target="_blank" rel="noopener">TikTok</a></li></ul></div></div>' +
       '<div class="ftr__bottom"><span>© ' + new Date().getFullYear() + " Bolivia Fitness · " + (B.campaignActive() ? "Precios Black Friday válidos del 16 al 30 de noviembre de 2026. " : "") + 'Stock, pago y envío se confirman por WhatsApp.</span><span>Fotos y videos: @boliviafitness</span></div></div></footer>' +
       '<div class="drawer" id="cart" role="dialog" aria-modal="true" aria-labelledby="cartTtl" hidden><div class="scrim" data-close-cart></div><aside class="drawer__panel"><div class="drawer__head"><h2 id="cartTtl">Tu bolsa</h2><button class="xbtn" data-close-cart aria-label="Cerrar bolsa">✕</button></div><div class="drawer__body" id="cartBody"></div><div class="drawer__foot" id="cartFoot"></div></aside></div>' +
-      '<button class="chatfab" id="chatfab" data-open-chat aria-label="Abrir LeonIA, asistente de compras"><img src="assets/img/logo.png" width="34" height="34" alt=""><span><b>LeonIA</b><small>¿Te ayudo a elegir?</small></span></button>' +
-      '<div class="chat" id="chat" role="dialog" aria-modal="false" aria-labelledby="chatTtl" hidden><div class="chat__head"><img src="assets/img/logo.png" width="36" height="36" alt=""><div><b id="chatTtl">LeonIA</b><small><i class="dot dot--live"></i> Asistente de compras</small></div><button class="xbtn" id="chatClose" aria-label="Cerrar asistente">✕</button></div>' +
+      '<button class="chatfab" id="chatfab" data-open-chat aria-label="Abrir LeonIA, tu coach y asistente"><img src="assets/img/logo.png" width="34" height="34" alt=""><span><b>LeonIA Coach</b><small>Armemos tu plan</small></span></button>' +
+      '<div class="chat" id="chat" role="dialog" aria-modal="false" aria-labelledby="chatTtl" hidden><div class="chat__head"><div class="chat__avatar" id="chatAvatar" aria-hidden="true"><img src="assets/img/logo.png" width="52" height="52" alt=""></div><div><b id="chatTtl">LeonIA</b><small><i class="dot dot--live"></i> <span id="chatSub">Coach y recepción · 24/7</span></small></div><button class="xbtn" id="chatClose" aria-label="Cerrar asistente">✕</button></div>' +
       '<div class="chat__log" id="chatLog" aria-live="polite"></div><div class="chat__chips" id="chatChips"></div>' +
       '<form class="chat__form" id="chatForm"><label class="vh" for="chatInput">Escribí tu mensaje</label><input id="chatInput" autocomplete="off" placeholder="Escribí o tocá el micrófono…" maxlength="600">' +
       '<button type="button" class="mic" id="micBtn" aria-label="Hablar con LeonIA" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></button>' +
@@ -157,7 +157,8 @@
     const a = e.target.closest("[data-add]"); if (a) { e.preventDefault(); addToCart(a.dataset.add, 1); return; }
     if (e.target.closest("[data-open-cart]")) { e.preventDefault(); openCart(); return; }
     if (e.target.closest("[data-close-cart]")) closeCart();
-    if (e.target.closest("[data-open-chat]")) { e.preventDefault(); closeNav(); openChat(); }
+    const oc = e.target.closest("[data-open-chat]");
+    if (oc) { e.preventDefault(); closeNav(); openChat(oc.dataset.ask || ""); }
   });
   let lastFocus = null;
   function openCart() { lastFocus = document.activeElement; $("#cart").hidden = false; renderCart(); updateMbar(); setTimeout(() => $("#cart .xbtn").focus(), 30); }
@@ -229,14 +230,17 @@
     let busy = false;
     function mdSafe(t) {
       const h = esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
-      let out = "", inList = false;
+      let out = "", list = null;
+      const close = () => { if (list) { out += "</" + list + ">"; list = null; } };
       for (const ln of h.split(/\n/)) {
-        const m = ln.match(/^\s*[-•]\s+(.*)/);
-        if (m) { if (!inList) { out += "<ul>"; inList = true; } out += "<li>" + m[1] + "</li>"; continue; }
-        if (inList) { out += "</ul>"; inList = false; }
-        if (ln.trim()) out += "<p>" + ln + "</p>";
+        const m = ln.match(/^\s*[-•*]\s+(.*)/), n = ln.match(/^\s*\d+[.)]\s+(.*)/);
+        const kind = m ? "ul" : n ? "ol" : null;
+        if (kind) { if (list !== kind) { close(); out += "<" + kind + ">"; list = kind; } out += "<li>" + (m || n)[1] + "</li>"; continue; }
+        close();
+        if (ln.trim()) out += "<p>" + ln.replace(/^#{1,4}\s+/, "") + "</p>";
       }
-      return out + (inList ? "</ul>" : "");
+      close();
+      return out;
     }
     function addMsg(role, text) { const d = document.createElement("div"); d.className = "msg msg--" + (role === "user" ? "me" : "bot"); d.innerHTML = role === "user" ? esc(text) : mdSafe(text); log.appendChild(d); log.scrollTop = log.scrollHeight; return d; }
     const safeWa = (u) => typeof u === "string" && u.startsWith("https://wa.me/");
@@ -249,7 +253,7 @@
     function addCard(cls, html) { const d = document.createElement("div"); d.className = "ccard " + cls; d.innerHTML = html; log.appendChild(d); log.scrollTop = log.scrollHeight; return d; }
     function chips(opts) { $("#chatChips").innerHTML = (opts || []).slice(0, 4).map((o) => '<button type="button">' + esc(o) + "</button>").join(""); }
     function starterChips() {
-      const o = ["¿Qué promos hay hoy?", "Quiero una creatina", "¿Qué sucursales están abiertas?", "Necesito proteína"];
+      const o = ["Armá mi plan de entrenamiento", "¿Cómo tomo la creatina?", "¿Qué sucursales están abiertas?", "¿Qué promos hay hoy?"];
       if (store.get("leonia_orders", []).length) o.unshift("🦁 Lo de siempre");
       chips(o);
     }
@@ -257,11 +261,11 @@
     log.addEventListener("click", (e) => { const b = e.target.closest(".qchips button"); if (b) send(b.textContent); const loc = e.target.closest("[data-share-loc]"); if (loc) shareLocation(loc); });
     function restoreLog() {
       log.innerHTML = "";
-      if (!LOG.length) addMsg("bot", "¡Hola! Soy **LeonIA** 🦁, tu asistente de compras de Bolivia Fitness. ¿Qué estás buscando hoy?");
+      if (!LOG.length) addMsg("bot", "¡Hola! Soy **LeonIA** 🦁, tu coach y recepcionista de Bolivia Fitness. Contame tu objetivo y te armo rutina, proteína y suplementos, o preguntame por sucursales, envíos y promos.");
       LOG.forEach((m) => addMsg(m.role, m.content));
       starterChips();
     }
-    openChat = function () { lastFocus = document.activeElement; chat.hidden = false; document.body.classList.add("chat-open"); if (!log.children.length) restoreLog(); updateMbar(); setTimeout(() => $("#chatInput").focus(), 50); if (voice.ok) $("#voicebar").hidden = false; };
+    openChat = function (ask) { lastFocus = document.activeElement; chat.hidden = false; mountAvatar(); if (typeof ask === "string" && ask) setTimeout(() => send(ask), 60); document.body.classList.add("chat-open"); if (!log.children.length) restoreLog(); updateMbar(); setTimeout(() => $("#chatInput").focus(), 50); if (voice.ok) $("#voicebar").hidden = false; };
     closeChat = function () { chat.hidden = true; document.body.classList.remove("chat-open"); stopVoice(); updateMbar(); if (lastFocus && document.contains(lastFocus)) lastFocus.focus(); };
     $("#chatClose").addEventListener("click", closeChat);
     $("#chatForm").addEventListener("submit", (e) => { e.preventDefault(); voice.lastWasVoice = false; const v = $("#chatInput").value.trim(); if (v) send(v); });
@@ -275,8 +279,9 @@
       stopSpeaking();
       busy = true; $("#chatInput").value = ""; chips([]);
       addMsg("user", text); LOG.push({ role: "user", content: text });
-      const typing = addMsg("bot", ""); typing.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
+      const typing = addMsg("bot", ""); typing.innerHTML = '<span class="typing"><i></i><i></i><i></i></span><span class="typing__lbl"></span>';
       setVoiceState("thinking");
+      const slowT = setTimeout(() => { const l = typing.querySelector(".typing__lbl"); if (l) l.textContent = "LeonIA está pensando tu respuesta…"; }, 3500);
       LS.cart = Object.assign({}, cart); LS.myOrders = store.get("leonia_orders", []);
       let botText = "", bubble = typing, cartCard = null;
       try {
@@ -293,7 +298,7 @@
           let i; while ((i = buf.indexOf("\n")) >= 0) {
             const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1); if (!line) continue;
             let ev; try { ev = JSON.parse(line); } catch (e) { continue; }
-            if (ev.type === "text") { botText += ev.text; if (!bubble.isConnected) bubble = addMsg("bot", ""); bubble.innerHTML = mdSafe(botText); log.scrollTop = log.scrollHeight; }
+            if (ev.type === "text") { if (!botText) { clearTimeout(slowT); face("speaking"); } botText += ev.text; if (!bubble.isConnected) bubble = addMsg("bot", ""); bubble.innerHTML = mdSafe(botText); log.scrollTop = log.scrollHeight; }
             else if (ev.type === "cart") { setCart(ev.cart, { bump: true }); if (cartCard) cartCard.innerHTML = cartCardHTML(ev.cart); else { if (!botText) typing.remove(); cartCard = addCard("", cartCardHTML(ev.cart)); bubble = document.createElement("div"); } }
             else if (ev.type === "options") chips(ev.options);
             else if (ev.type === "readback") { const s = ev.summary || {}; addCard("", "<h4>Revisá tu pedido</h4><ul>" + (s.lines || []).map((l) => "<li><span>" + l.qty + "× " + esc(l.name) + "</span><span>" + money(l.subtotal) + "</span></li>").join("") + '</ul><div class="ctot"><span>Total</span><span>' + money(s.total || 0) + '</span></div><p style="margin:8px 0 0;color:var(--muted)">' + esc([s.service, s.branch, s.address, s.when, s.name, s.gift ? "🎁 " + s.gift : ""].filter(Boolean).join(" · ")) + '</p><div class="qchips" style="margin-top:10px"><button>Sí, confirmar</button><button>Cambiar algo</button></div>'); }
@@ -305,13 +310,14 @@
           }
         }
         if (typing.isConnected && !typing.textContent.trim()) typing.remove();
+        clearTimeout(slowT);
         if (botText.trim()) { LOG.push({ role: "assistant", content: botText.trim() }); speak(botText); } else setVoiceState("idle");
       } catch (err) {
         if (typing.isConnected) typing.remove();
-        if (!botText) { LOG.pop(); friendlyError("net"); } setVoiceState("idle");
+        clearTimeout(slowT); if (!botText) { LOG.pop(); friendlyError("net"); } setVoiceState("idle");
       }
       LOG = LOG.slice(-20); persist(); busy = false;
-      if (!$("#chatChips").children.length && LS.stage !== "awaiting_confirmation") starterChips();
+      if (!$("#chatChips").children.length && LS.stage !== "awaiting_confirmation" && LOG.length <= 2) starterChips();
     }
     function persist() { store.set("leonia_state", LS, true); store.set("leonia_log", LOG, true); }
     function saveOrderEntry(entry) { if (!entry || !entry.cart) return; const h = store.get("leonia_orders", []).filter((x) => x.id !== entry.id); h.unshift(entry); store.set("leonia_orders", h.slice(0, 3)); }
@@ -326,7 +332,23 @@
     /* voz */
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     const voice = { ok: !!SR, rec: null, listening: false, speaking: false, wake: null, voiceObj: null, lastWasVoice: false };
+    /* cara 3D de LeonIA en el chat (se carga al abrirlo; sin WebGL queda el logo) */
+    let avatar = null, avatarLoading = false, faceIdleT = 0;
+    function mountAvatar() {
+      if (avatar || avatarLoading) return; avatarLoading = true;
+      import("./leon3d.js").then((m) => {
+        const el = $("#chatAvatar"); avatar = m.mountLeon3D(el, { interactive: false, faceLayers: 10, zoom: 1.08 });
+        if (!avatar.flat) { const img = el.querySelector("img"); if (img) img.remove(); }
+      }).catch(() => { /* sin módulos: queda el logo */ });
+    }
+    function face(s) {
+      clearTimeout(faceIdleT);
+      if (avatar) avatar.setState(s);
+      $("#chatAvatar").dataset.state = s;
+      const sub = $("#chatSub"); if (sub) sub.textContent = { idle: "Coach y recepción · 24/7", thinking: "Pensando…", speaking: "Respondiendo…", listening: "Escuchando…" }[s] || "";
+    }
     function setVoiceState(s) {
+      face(s);
       const mic = $("#micBtn"); mic.classList.remove("listening", "thinking", "speaking"); if (s !== "idle") mic.classList.add(s);
       $("#voicebar").classList.toggle("live", s !== "idle");
       $("#voiceStatus").textContent = { idle: "Tocá el micrófono y hablá", listening: "Escuchando…", thinking: "Pensando…", speaking: "Hablando… tocá para interrumpir" }[s];
@@ -372,5 +394,5 @@
 
   window.BFX = { B, $, $$, esc, money, P, cat: () => CAT, catName, url, store, ICON, reduced, PAGE,
     cart: { lines: cartLines, count: cartCount, total: cartTotal, add: addToCart, set: setCart, change: changeQty, get: () => Object.assign({}, cart), onChange: (fn) => listeners.push(fn), getGift, setGift },
-    productCard, qtyHTML, footHTML, complements, toast, branchStatus, nowLP, reveal, tilt, autoplay, railButtons, countdown, hideMbarWhileVisible, updateMbar, openCart };
+    productCard, qtyHTML, footHTML, complements, toast, branchStatus, nowLP, reveal, tilt, autoplay, railButtons, countdown, hideMbarWhileVisible, updateMbar, openCart, openChat: (ask) => openChat(ask) };
 })();

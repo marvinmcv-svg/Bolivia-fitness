@@ -108,9 +108,9 @@ for (const [vpName, ctxOpts] of VIEWPORTS) {
   {
     const hp = await ctx.newPage();
     await hp.goto(BASE + "/index.html", { waitUntil: "domcontentloaded" });
-    await hp.waitForFunction(() => document.querySelector(".hl--bottom.on"), null, { timeout: 10000 }).catch(() => {});
+    await hp.waitForFunction(() => document.querySelector(".hs.is-active"), null, { timeout: 10000 }).catch(() => {});
     await hp.waitForTimeout(800);
-    const r = await hp.evaluate(() => { const c = document.querySelector('.hl--bottom[data-hl="0"] .ctas'); const b = c && c.getBoundingClientRect(); return b ? { top: b.top, bottom: b.bottom, h: innerHeight } : null; });
+    const r = await hp.evaluate(() => { const c = document.querySelector('.hs.is-active .hs__ctas'); const b = c && c.getBoundingClientRect(); return b ? { top: b.top, bottom: b.bottom, h: innerHeight } : null; });
     if (!r || r.bottom > r.h || r.top < 0) note(vpName, "hero", "botones del hero fuera de pantalla " + JSON.stringify(r));
     await hp.close();
   }
