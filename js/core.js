@@ -60,6 +60,10 @@
       '<div class="navpanel" id="navpanel" hidden><nav aria-label="Menú móvil">' + NAV.map(([h, t]) => '<a href="' + h + '">' + t + "</a>").join("") + '<a href="pedido.html">Mi bolsa</a><a href="#" class="ai" data-open-chat>LeonIA</a></nav></div>' +
       (B.campaignActive() ? '<div class="ribbon"><b>Black Friday:</b> hasta ' + B.campaign.upTo + '% OFF + 1 accesorio gratis por cualquier compra, hasta el 30 de noviembre. <a href="ofertas.html">Comprar ofertas →</a></div>' : "");
     document.body.prepend(...head.childNodes);
+    // alto real de la cinta de campaña → el hero 3D descuenta ese espacio y sus botones no quedan bajo el pliegue
+    const rib = $(".ribbon");
+    const setRibbon = () => document.documentElement.style.setProperty("--ribbon", (rib ? rib.offsetHeight : 0) + "px");
+    setRibbon(); addEventListener("resize", setRibbon, { passive: true });
 
     const foot = document.createElement("div");
     const cats = B.categories.filter((c) => Object.values(CAT).some((p) => p.cat === c.id));
