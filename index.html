@@ -1,278 +1,145 @@
 <!doctype html>
-<html lang="es-BO">
+<html lang="es-BO" class="is-loading">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Bolivia Fitness · Tienda de suplementos americanos originales en Bolivia</title>
-  <meta name="description" content="Representantes oficiales de Dragon Pharma y ProSupps en Bolivia. Creatinas, proteínas y pre-entrenos originales con registro SENASAG. Black Friday hasta 40% OFF del 16 al 30 de noviembre + 1 accesorio gratis. Envíos a toda Bolivia.">
-  <meta name="theme-color" content="#f5f5f7">
-  <link rel="canonical" href="https://boliviafitness.vercel.app/">
+  <title>Bolivia Fitness · Tienda online de suplementos americanos originales</title>
+  <meta name="description" content="Tienda online oficial de Bolivia Fitness: Dragon Pharma y ProSupps originales con registro SENASAG. Creatinas, proteínas y pre-entrenos. Black Friday hasta 40% OFF + accesorio gratis. Envíos a toda Bolivia.">
+  <meta name="theme-color" content="#080606">
+  <link rel="canonical" href="https://bolivia-fitness.vercel.app/">
   <link rel="icon" href="favicon.ico" sizes="48x48">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
   <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
   <link rel="manifest" href="site.webmanifest">
-
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Bolivia Fitness">
   <meta property="og:locale" content="es_BO">
-  <meta property="og:title" content="Bolivia Fitness · Tienda de suplementos americanos originales">
+  <meta property="og:title" content="Bolivia Fitness · Tienda online de suplementos americanos originales">
   <meta property="og:description" content="Dragon Pharma y ProSupps originales en 7 ciudades de Bolivia. Black Friday hasta 40% OFF + accesorio gratis.">
-  <meta property="og:image" content="https://boliviafitness.vercel.app/assets/brand/boliviafitness-logo-share.jpg">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="1200">
+  <meta property="og:image" content="https://bolivia-fitness.vercel.app/assets/brand/boliviafitness-logo-share.jpg">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Bolivia Fitness · Tienda de suplementos americanos originales">
-  <meta name="twitter:image" content="https://boliviafitness.vercel.app/assets/brand/boliviafitness-logo-share.jpg">
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
-
+  <link rel="modulepreload" href="assets/vendor/three.module.min.js">
+  <link rel="preload" as="image" href="assets/brand/logo-1024.webp">
+  <script type="importmap">{ "imports": { "three": "./assets/vendor/three.module.min.js" } }</script>
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Store",
-    "name": "Bolivia Fitness",
-    "description": "Representantes oficiales de suplementos americanos Dragon Pharma y ProSupps en Bolivia.",
-    "image": "https://boliviafitness.vercel.app/assets/brand/boliviafitness-logo-share.jpg",
-    "telephone": "+59175666702",
-    "priceRange": "Bs 219 – Bs 949",
-    "currenciesAccepted": "BOB",
-    "address": { "@type": "PostalAddress", "addressCountry": "BO", "addressLocality": "Santa Cruz de la Sierra" },
-    "areaServed": ["Santa Cruz", "La Paz", "Cochabamba", "Sucre", "Oruro", "El Alto", "Tarija"],
-    "sameAs": ["https://www.instagram.com/boliviafitness/", "https://www.facebook.com/Boliviafitnessbol/", "https://www.tiktok.com/@boliviafitness"]
-  }
+  {"@context":"https://schema.org","@type":"Store","name":"Bolivia Fitness","url":"https://bolivia-fitness.vercel.app/","description":"Representantes oficiales de suplementos americanos Dragon Pharma y ProSupps en Bolivia.","image":"https://bolivia-fitness.vercel.app/assets/brand/boliviafitness-logo-share.jpg","telephone":"+59175666702","priceRange":"Bs 219 – Bs 949","currenciesAccepted":"BOB","address":{"@type":"PostalAddress","addressCountry":"BO"},"areaServed":["Santa Cruz","La Paz","Cochabamba","Sucre","Oruro","El Alto","Tarija"],"sameAs":["https://www.instagram.com/boliviafitness/","https://www.facebook.com/Boliviafitnessbol/","https://www.tiktok.com/@boliviafitness"]}
   </script>
 </head>
-<body>
-  <a class="skip" href="#main">Saltar al contenido</a>
-
-  <!-- Navegación global -->
-  <header class="gnav" id="hdr">
-    <nav class="gnav__in" aria-label="Principal">
-      <a class="gnav__logo" href="#top" aria-label="Bolivia Fitness, inicio"><img src="assets/img/logo.png" width="28" height="28" alt=""><span>Bolivia Fitness</span></a>
-      <ul class="gnav__links" id="navLinks"></ul>
-      <div class="gnav__icons">
-        <button class="gicon" id="navSearch" aria-label="Buscar productos"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></svg></button>
-        <button class="gicon" data-open-cart aria-label="Abrir bolsa"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 8.5h13l-1 11.5h-11z"/><path d="M9 8.5V7a3 3 0 0 1 6 0v1.5"/></svg><span class="gicon__count" data-cart-count hidden>0</span></button>
-        <button class="gicon gnav__burger" id="burger" aria-expanded="false" aria-controls="navpanel" aria-label="Menú"><span class="burger-ic" aria-hidden="true"><i></i><i></i></span></button>
+<body data-page="home">
+  <!-- Pantalla de carga -->
+  <div class="loader" id="loader" aria-hidden="true">
+    <div class="loader__in">
+      <div class="loader__ring">
+        <svg viewBox="0 0 150 150"><circle class="trk" cx="75" cy="75" r="64"/><circle class="bar" id="loaderBar" cx="75" cy="75" r="64"/></svg>
+        <img class="loader__logo" src="assets/img/logo.png" width="106" height="106" alt="">
       </div>
-    </nav>
-  </header>
-  <div class="navpanel" id="navpanel" hidden><nav aria-label="Menú móvil" id="navpanelLinks"></nav></div>
-
-  <!-- Cinta de campaña -->
-  <div class="ribbon" id="ribbon"></div>
+      <div class="loader__word"><span style="animation-delay:.05s">B</span><span style="animation-delay:.09s">o</span><span style="animation-delay:.13s">l</span><span style="animation-delay:.17s">i</span><span style="animation-delay:.21s">v</span><span style="animation-delay:.25s">i</span><span style="animation-delay:.29s">a</span><span>&nbsp;</span><span class="r" style="animation-delay:.37s">F</span><span class="r" style="animation-delay:.41s">i</span><span class="r" style="animation-delay:.45s">t</span><span class="r" style="animation-delay:.49s">n</span><span class="r" style="animation-delay:.53s">e</span><span class="r" style="animation-delay:.57s">s</span><span class="r" style="animation-delay:.61s">s</span></div>
+      <div class="loader__pct" id="loaderPct">000%</div>
+    </div>
+  </div>
+  <script>setTimeout(function(){var l=document.getElementById("loader");if(l&&!l.classList.contains("done")){l.classList.add("done");document.documentElement.classList.remove("is-loading");var f=document.getElementById("heroFallback");if(f&&!document.querySelector("#heroStage canvas"))f.hidden=false;document.querySelectorAll("[data-hl='0']").forEach(function(e){e.classList.add("on")});}},7000);</script>
 
   <main id="main">
-    <!-- Hero de tienda -->
-    <section class="storehero wrap" id="top">
-      <h1 class="storehero__ttl"><span class="ink">Tienda.</span> <span class="muted">La mejor forma de comprar los suplementos que amás.</span></h1>
-      <div class="storehero__help">
-        <div class="helprow"><img src="assets/img/logo.png" width="36" height="36" alt=""><div><b>¿Necesitás ayuda para elegir?</b><button class="link" data-open-chat>Preguntale a LeonIA ↗</button></div></div>
-        <div class="helprow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></svg><div><b>Visitá una sucursal</b><a class="link" href="#sucursales">Encontrá la más cercana ›</a></div></div>
+    <!-- Hero 3D -->
+    <section class="hero3d" id="hero" aria-label="Bolivia Fitness">
+      <div class="hero3d__stage" id="heroStage">
+        <div class="hero3d__bg" aria-hidden="true"></div>
+        <img class="hero3d__fallback" id="heroFallback" src="assets/brand/logo-1024.webp" width="1024" height="1024" alt="" hidden>
+        <div class="hero3d__copy">
+          <div class="hl hl--top" data-hl="0">
+            <p class="eyebrow">Representantes oficiales · Dragon Pharma &amp; ProSupps</p>
+            <h1>Bolivia <b>Fitness</b></h1>
+          </div>
+          <div class="hl hl--bottom" data-hl="0">
+            <p>Suplementos americanos originales, con registro SENASAG y sello de autenticidad. Comprá online y recibí en casa.</p>
+            <div class="ctas"><a class="btn btn--lg" href="tienda.html">Comprar ahora <span class="arrow">→</span></a><a class="btn btn--ghost btn--lg" href="ofertas.html">Ver ofertas</a></div>
+          </div>
+          <div class="hl hl--bottom" data-hl="1">
+            <h2>Hasta <b>40% OFF</b></h2>
+            <p>Black Friday del 16 al 30 de noviembre, y 1 accesorio gratis por cualquier compra.</p>
+            <div class="ctas"><a class="btn btn--gold btn--lg" href="ofertas.html">Comprar ofertas <span class="arrow">→</span></a></div>
+          </div>
+          <div class="hl hl--bottom" data-hl="2">
+            <h2>Tu tienda, <b>online</b></h2>
+            <p>Elegí, agregá a tu bolsa y finalizá en minutos. Envío gratis a domicilio y envíos a toda Bolivia.</p>
+            <div class="ctas"><a class="btn btn--lg" href="tienda.html">Entrar a la tienda <span class="arrow">→</span></a><button class="btn btn--ghost btn--lg" data-open-chat>Elegir con LeonIA</button></div>
+          </div>
+        </div>
+        <div class="scrollcue" id="scrollCue" aria-hidden="true">Deslizá<i></i></div>
       </div>
     </section>
 
-    <!-- Tira de categorías -->
-    <nav class="catnav" aria-label="Categorías"><div class="rail catnav__rail" id="catnav"></div></nav>
-
-    <!-- Lo último -->
-    <section class="shelf" aria-labelledby="latestTtl">
-      <h2 class="shelf__ttl wrap" id="latestTtl"><span class="ink">Lo último.</span> <span class="muted">Mirá lo nuevo, ahora.</span></h2>
-      <div class="rail-wrap">
-        <div class="rail shelf__rail" id="latestRail"></div>
-        <div class="railnav"><button class="railbtn" data-rail="latestRail" data-dir="-1" aria-label="Anterior">‹</button><button class="railbtn" data-rail="latestRail" data-dir="1" aria-label="Siguiente">›</button></div>
+    <!-- Categorías -->
+    <section class="sec" aria-labelledby="catsTtl">
+      <div class="wrap">
+        <div class="sechead reveal"><div><p class="eyebrow">Tienda online</p><h2 class="h2" id="catsTtl">Comprá por objetivo. <span class="muted">Todo original, todo online.</span></h2></div><a class="more" href="tienda.html">Ver toda la tienda <span class="arrow">→</span></a></div>
+        <div class="cats reveal" id="cats"></div>
       </div>
     </section>
 
     <!-- Black Friday -->
-    <section class="shelf" id="blackfriday" aria-labelledby="bfTtl" hidden>
-      <div class="wrap bfhead">
-        <h2 class="shelf__ttl" id="bfTtl"><span class="ink">Black Friday.</span> <span class="muted">Hasta 40% OFF en todo, hasta el 30 de noviembre.</span></h2>
-        <div class="countdown" id="countdown" aria-live="off"></div>
+    <section class="sec bf" id="blackfriday" aria-labelledby="bfTtl" hidden>
+      <div class="wrap">
+        <div class="bf__grid reveal">
+          <div><p class="eyebrow">Black Friday · 16 al 30 de noviembre</p><h2 class="bf__big" id="bfTtl">Hasta <b>40%</b><br>OFF</h2></div>
+          <div><p class="lede" style="margin:0 0 18px">En todos nuestros productos americanos, y 1 accesorio gratis por cualquier compra. Termina en:</p><div class="countdown" id="countdown"></div></div>
+        </div>
       </div>
-      <div class="rail-wrap">
-        <div class="rail shelf__rail" id="bfRail"></div>
-        <div class="railnav"><button class="railbtn" data-rail="bfRail" data-dir="-1" aria-label="Anterior">‹</button><button class="railbtn" data-rail="bfRail" data-dir="1" aria-label="Siguiente">›</button></div>
+      <div class="rail" id="bfRail"></div>
+      <div class="wrap" style="display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:center">
+        <a class="btn btn--gold" href="ofertas.html">Ver todas las ofertas <span class="arrow">→</span></a>
+        <div class="railnav"><button class="iconbtn" data-rail="bfRail" data-dir="-1" aria-label="Anterior">‹</button><button class="iconbtn" data-rail="bfRail" data-dir="1" aria-label="Siguiente">›</button></div>
       </div>
     </section>
 
     <!-- La diferencia -->
-    <section class="shelf" aria-labelledby="diffTtl">
-      <h2 class="shelf__ttl wrap" id="diffTtl"><span class="ink">La diferencia Bolivia Fitness.</span> <span class="muted">Más razones para comprar con nosotros.</span></h2>
-      <div class="rail shelf__rail" id="diffRail"></div>
-    </section>
-
-    <!-- Tienda -->
-    <section class="shop" id="tienda" aria-labelledby="shopTtl">
+    <section class="sec sec--glow" aria-labelledby="diffTtl">
       <div class="wrap">
-        <h2 class="shop__head" id="shopTtl">Comprá suplementos</h2>
-        <div class="tabs" role="tablist" aria-label="Categorías" id="catTabs"></div>
-        <div class="shopbar">
-          <h3 class="shelf__ttl shelf__ttl--in"><span class="ink" id="shopCatName">Todos los productos.</span> <span class="muted">Elegí el tuyo.</span></h3>
-          <div class="shopbar__tools">
-            <label class="search"><span class="vh">Buscar</span>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></svg>
-              <input type="search" id="shopSearch" placeholder="Buscar creatina, whey…" autocomplete="off"></label>
-            <div class="chips" id="brandChips" aria-label="Marcas"></div>
-            <label class="sortsel"><span class="vh">Ordenar</span>
-              <select id="shopSort" class="select">
-                <option value="feat">Destacados</option>
-                <option value="price">Menor precio</option>
-                <option value="save">Mayor ahorro</option>
-                <option value="serv">Precio por servicio</option>
-              </select></label>
-          </div>
-        </div>
-        <p class="shop__count" id="shopCount" aria-live="polite"></p>
-        <div class="pgrid" id="pgrid"></div>
-        <div class="giftcard" id="giftcard"></div>
+        <div class="sechead reveal"><div><p class="eyebrow">Por qué comprar acá</p><h2 class="h2" id="diffTtl">La diferencia <span class="red">Bolivia Fitness.</span></h2></div></div>
+        <div class="bento" id="bento"></div>
       </div>
     </section>
 
-    <!-- Ayuda -->
-    <section class="shelf" aria-labelledby="helpTtl">
-      <h2 class="shelf__ttl wrap" id="helpTtl"><span class="ink">Ayuda cuando la necesitás.</span> <span class="muted">Como y cuando quieras.</span></h2>
-      <div class="rail shelf__rail" id="helpRail"></div>
-    </section>
-
-    <!-- Comunidad -->
-    <section class="shelf" id="reels" aria-labelledby="reelsTtl">
-      <h2 class="shelf__ttl wrap" id="reelsTtl"><span class="ink">La comunidad.</span> <span class="muted">Lo que pasa en Bolivia Fitness.</span></h2>
-      <div class="rail-wrap">
-        <div class="rail shelf__rail" id="reelRail"></div>
-        <div class="railnav"><button class="railbtn" data-rail="reelRail" data-dir="-1" aria-label="Anterior">‹</button><button class="railbtn" data-rail="reelRail" data-dir="1" aria-label="Siguiente">›</button></div>
-      </div>
-    </section>
-
-    <!-- Checkout -->
-    <section class="checkout" id="pedido" aria-labelledby="funTtl">
-      <div class="wrap checkout__grid">
-        <div>
-          <h2 class="checkout__ttl" id="funTtl">Finalizá tu pedido.</h2>
-          <p class="checkout__sub">Armamos el mensaje por vos y lo enviás a Bolivia Fitness por WhatsApp. Ahí te confirman stock, pago y envío.</p>
-          <ol class="steps" id="steps" aria-label="Pasos"></ol>
-          <form class="fform" id="fform" novalidate></form>
-          <p class="fmsg" id="fmsg" aria-live="polite"></p>
-        </div>
-        <aside class="waprev" aria-label="Vista previa del mensaje de WhatsApp">
-          <div class="waprev__top"><img src="assets/img/logo.png" width="32" height="32" alt=""><div><b>Bolivia Fitness</b><small>WhatsApp · 756 66702</small></div></div>
-          <div class="waprev__chat"><div class="bubble" id="waPreview"></div></div>
-        </aside>
-      </div>
-    </section>
-
-    <!-- Sucursales -->
-    <section class="stores" id="sucursales" aria-labelledby="brTtl">
+    <!-- Más vendidos -->
+    <section class="sec" aria-labelledby="topTtl">
       <div class="wrap">
-        <h2 class="shelf__ttl" id="brTtl"><span class="ink">Visitá una sucursal.</span> <span class="muted">Siete ciudades, una sola manada.</span></h2>
-        <p class="stores__now" id="brNow"></p>
-        <div class="bgrid" id="bgrid"></div>
+        <div class="sechead reveal"><div><p class="eyebrow">Destacados</p><h2 class="h2" id="topTtl">Lo más buscado. <span class="muted">Directo a tu bolsa.</span></h2></div><a class="more" href="tienda.html">Ver los 13 productos <span class="arrow">→</span></a></div>
+        <div class="pgrid" id="topGrid"></div>
       </div>
     </section>
 
-    <!-- Experiencia -->
-    <section class="shelf" id="historia" aria-labelledby="stTtl">
-      <h2 class="shelf__ttl wrap" id="stTtl"><span class="ink">La experiencia Bolivia Fitness.</span> <span class="muted">Originales, cerca tuyo y con comunidad.</span></h2>
-      <div class="wrap expgrid">
-        <article class="xcard xcard--dark">
-          <div class="xcard__txt">
-            <p class="eyebrow">Representantes oficiales</p>
-            <h3>Dragon Pharma y ProSupps, 100% originales.</h3>
-            <p>Suplementos americanos respaldados por registro SENASAG y sello de autenticidad.</p>
-          </div>
-          <img src="assets/img/mejor-precio.webp" width="900" height="1127" alt="Venom Inferno, creatinas ProSupps e Incredibulk" loading="lazy">
-        </article>
-        <article class="xcard">
-          <div class="xcard__txt">
-            <p class="eyebrow">Nuestra comunidad</p>
-            <h3>Miles de personas en la Expocruz.</h3>
-            <p>Entrenamientos a otro nivel, disciplina pura y una motivación que contagia. También estuvimos en la FEIPOBOL de Potosí y auspiciamos el Bolivia Super Show 2026.</p>
-          </div>
-          <div class="xcard__vid"><video muted playsinline loop preload="none" poster="assets/hero/bf-launch-hd.webp" data-autoplay><source src="assets/hero/bf-launch-hd.mp4" type="video/mp4"></video></div>
-        </article>
+    <!-- Armá tu stack -->
+    <section class="sec sec--glow" aria-labelledby="stackTtl">
+      <div class="wrap">
+        <div class="sechead reveal"><div><p class="eyebrow">Armá tu stack</p><h2 class="h2" id="stackTtl">Combinaciones listas. <span class="muted">Un clic y a tu bolsa.</span></h2></div></div>
+        <div class="stacks" id="stacks"></div>
       </div>
     </section>
 
-    <!-- Instagram -->
-    <section class="shelf feed" id="instagram" aria-labelledby="igTtl">
-      <div class="wrap feed__head">
-        <h2 class="shelf__ttl" id="igTtl"><span class="ink">@boliviafitness.</span> <span class="muted">Seguinos en Instagram.</span></h2>
-        <a class="link" href="https://www.instagram.com/boliviafitness/" target="_blank" rel="noopener">Seguir en Instagram ↗</a>
+    <!-- LeonIA -->
+    <section class="sec" aria-labelledby="aiTtl">
+      <div class="wrap">
+        <div class="aiband reveal">
+          <div><p class="eyebrow">Asistente de compras</p><h2 class="h2" id="aiTtl">¿No sabés qué elegir? <span class="red">Preguntale a LeonIA.</span></h2><p class="lede">Contale tu objetivo, por texto o por voz. Te arma la bolsa y deja tu pedido listo para enviar.</p><div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap"><button class="btn btn--lg" data-open-chat>Hablar con LeonIA</button><a class="btn btn--ghost btn--lg" href="tienda.html">Ver la tienda</a></div></div>
+          <div class="aiband__chat" aria-hidden="true"><div class="bubble-d me">Quiero ganar masa, ¿qué me recomendás?</div><div class="bubble-d">Te puedo mostrar proteínas y ganadores de masa con sus precios Black Friday 💪 ¿Te armo la bolsa?</div><div class="bubble-d me">Dale 🦁</div></div>
+        </div>
       </div>
-      <div class="wrap feedgrid" id="feedgrid"></div>
+    </section>
+
+    <!-- Comunidad (breve) -->
+    <section class="sec" aria-labelledby="comTtl" style="padding-top:20px">
+      <div class="wrap"><div class="sechead reveal"><div><p class="eyebrow">Comunidad</p><h2 class="h2" id="comTtl">Una sola manada. <span class="muted">Mirá lo que pasa en las tiendas.</span></h2></div><a class="more" href="nosotros.html#comunidad">Ver comunidad <span class="arrow">→</span></a></div></div>
+      <div class="rail reels" id="reelRail"></div>
     </section>
   </main>
 
-  <footer class="ftr" id="footer">
-    <div class="wrap">
-      <p class="ftr__note" id="ftrNote"></p>
-      <div class="ftr__groups" id="ftrGroups"></div>
-      <p class="ftr__more">Más formas de comprar: <a href="#sucursales">encontrá una sucursal</a>, pedí por <a href="https://wa.me/59175666702" target="_blank" rel="noopener">WhatsApp</a> o llamá al <a href="tel:+59175666702">756 66702</a>.</p>
-      <div class="ftr__legal"><span id="ftrLegal"></span><span class="ftr__social">
-        <a href="https://www.instagram.com/boliviafitness/" target="_blank" rel="noopener">Instagram</a>
-        <a href="https://www.facebook.com/Boliviafitnessbol/" target="_blank" rel="noopener">Facebook</a>
-        <a href="https://www.tiktok.com/@boliviafitness" target="_blank" rel="noopener">TikTok</a></span><span>Bolivia</span></div>
-    </div>
-  </footer>
-
-  <!-- Comprar (vista rápida) -->
-  <div class="qv" id="qv" role="dialog" aria-modal="true" aria-labelledby="qvTtl" hidden>
-    <div class="scrim" data-close-qv></div>
-    <div class="qv__panel" id="qvPanel"></div>
-  </div>
-
-  <!-- Bolsa -->
-  <div class="drawer" id="cart" role="dialog" aria-modal="true" aria-labelledby="cartTtl" hidden>
-    <div class="scrim" data-close-cart></div>
-    <aside class="drawer__panel">
-      <div class="drawer__head"><h2 id="cartTtl">Tu bolsa</h2><button class="xbtn" data-close-cart aria-label="Cerrar bolsa">✕</button></div>
-      <div class="drawer__body" id="cartBody"></div>
-      <div class="drawer__foot" id="cartFoot"></div>
-    </aside>
-  </div>
-
-  <!-- Asistente -->
-  <button class="chatfab" id="chatfab" data-open-chat aria-label="Abrir LeonIA, asistente de compras">
-    <img src="assets/img/logo.png" width="34" height="34" alt="">
-    <span><b>LeonIA</b><small>¿Te ayudo a elegir?</small></span>
-  </button>
-  <div class="chat" id="chat" role="dialog" aria-modal="false" aria-labelledby="chatTtl" hidden>
-    <div class="chat__head">
-      <img src="assets/img/logo.png" width="36" height="36" alt="">
-      <div><b id="chatTtl">LeonIA</b><small><i class="dot dot--live"></i> Asistente de compras</small></div>
-      <button class="xbtn" id="chatClose" aria-label="Cerrar asistente">✕</button>
-    </div>
-    <div class="chat__log" id="chatLog" aria-live="polite"></div>
-    <div class="chat__chips" id="chatChips"></div>
-    <form class="chat__form" id="chatForm">
-      <label class="vh" for="chatInput">Escribí tu mensaje</label>
-      <input id="chatInput" autocomplete="off" placeholder="Escribí o tocá el micrófono…" maxlength="600">
-      <button type="button" class="mic" id="micBtn" aria-label="Hablar con LeonIA" hidden>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>
-      </button>
-      <button class="send" aria-label="Enviar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>
-    </form>
-    <div class="voicebar" id="voicebar" hidden>
-      <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-      <span class="voicebar__st" id="voiceStatus">Tocá el micrófono y hablá</span>
-      <label class="switch"><input type="checkbox" id="handsfree"><span>Manos libres</span></label>
-    </div>
-    <p class="chat__disc">LeonIA es una IA y puede equivocarse. Confirmá tu pedido por WhatsApp.</p>
-  </div>
-
-  <!-- Barra móvil -->
-  <div class="mbar" id="mbar">
-    <button class="mbar__ai" data-open-chat aria-label="Abrir LeonIA"><img src="assets/img/logo.png" width="32" height="32" alt=""></button>
-    <button class="mbar__cart" data-open-cart id="mbarCart" hidden></button>
-    <a class="mbar__cta" href="#pedido">Pedir por WhatsApp</a>
-  </div>
-
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
   <script src="js/data.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/home.js"></script>
+  <script type="module" src="js/hero3d.js"></script>
 </body>
 </html>

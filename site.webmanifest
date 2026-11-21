@@ -4,7 +4,7 @@
   "description": "Suplementos americanos originales Dragon Pharma y ProSupps en Bolivia.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f6f3ef",
+  "background_color": "#080606",
   "theme_color": "#e00006",
   "icons": [
     { "src": "assets/brand/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },

@@ -1,4 +1,5 @@
 {
+  "cleanUrls": true,
   "functions": {
     "api/leonia.js": { "maxDuration": 60 }
   }
