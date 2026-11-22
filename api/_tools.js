@@ -455,8 +455,8 @@ function runTool(ctx, name, args) {
 function isYes(text) {
   const t = norm(text);
   if (!t || t.length > 60) return false;
-  if (/\b(no|pero|cambia|cambiar|quita|quitar|agrega|agregar|espera|mejor|aunque|sin)\b/.test(t)) return false;
-  return /^(si|sip|sii+|claro|dale|de una|confirmo|confirmar|confirmado|ok|okay|okey|listo|perfecto|bueno|mandalo|mandale|envialo|hacelo|correcto|exacto|yes|va|vamos)\b/.test(t)
+  if (/\b(no|pero|cambia|cambiar|quita|quitar|agrega|agregar|espera|mejor|aunque|sin|but|change|remove|add|wait|instead|without)\b/.test(t)) return false;
+  return /^(si|sip|sii+|claro|dale|de una|confirmo|confirmar|confirmado|ok|okay|okey|listo|perfecto|bueno|mandalo|mandale|envialo|hacelo|correcto|exacto|yes|yep|yeah|sure|confirm|confirmed|send it|go ahead|va|vamos)\b/.test(t)
     || /^si,? confirmar$/.test(t);
 }
 

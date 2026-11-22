@@ -8,6 +8,7 @@
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const money = B.money;
+  const isEN = () => document.documentElement.lang === "en";
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const PAGE = document.body.dataset.page || "home";
   let CAT = B.catalog();
@@ -28,6 +29,8 @@
     store: '<svg viewBox="0 0 36 36" aria-hidden="true"><path d="M5 14l2.5-8h21L31 14M5 14v17h26V14M5 14h26M14 31v-8h8v8"/></svg>',
     chat: '<svg viewBox="0 0 36 36" aria-hidden="true"><path d="M6 30l2-6a12 12 0 1 1 4.5 4.3z"/><path d="M13 15c.6 3.5 3.6 6.5 7 7"/></svg>',
     spark: '<svg viewBox="0 0 36 36" aria-hidden="true"><path d="M18 4l3 9 9 3-9 3-3 9-3-9-9-3 9-3z"/></svg>',
+    moon: '<svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>',
+    sun: '<svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>',
     pin: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></svg>',
   };
 
@@ -55,9 +58,9 @@
       '<header class="gnav"><nav class="gnav__in" aria-label="Principal">' +
       '<a class="gnav__logo" href="index.html" aria-label="Bolivia Fitness, inicio"><img src="assets/img/logo.png" width="34" height="34" alt=""><span>Bolivia <b>Fitness</b></span></a>' +
       '<ul class="gnav__links">' + NAV.map(([h, t, k]) => '<li><a href="' + h + '"' + (k === PAGE ? ' aria-current="page"' : "") + ">" + t + "</a></li>").join("") + '<li><a href="#" class="ai" data-open-chat>LeonIA</a></li></ul>' +
-      '<div class="gnav__icons"><a class="iconbtn" href="tienda.html#buscar" aria-label="Buscar productos">' + ICON.search + '</a><button class="iconbtn cartbtn" data-open-cart aria-label="Abrir bolsa">' + ICON.bag + '<span class="cartbtn__count" data-cart-count hidden>0</span></button>' +
+      '<div class="gnav__icons">' + '<button class="iconbtn gnav__pref" type="button" data-toggle-theme aria-label="Cambiar a modo claro">' + ICON.sun + ICON.moon + '</button><button class="iconbtn gnav__pref langbtn" type="button" data-toggle-lang aria-label="Switch to English" translate="no"><span data-lang-label>EN</span></button>' + '<a class="iconbtn" href="tienda.html#buscar" aria-label="Buscar productos">' + ICON.search + '</a><button class="iconbtn cartbtn" data-open-cart aria-label="Abrir bolsa">' + ICON.bag + '<span class="cartbtn__count" data-cart-count hidden>0</span></button>' +
       '<button class="iconbtn gnav__burger" id="burger" aria-expanded="false" aria-controls="navpanel" aria-label="Menú"><span class="burger-ic" aria-hidden="true"><i></i><i></i></span></button></div></nav></header>' +
-      '<div class="navpanel" id="navpanel" hidden><nav aria-label="Menú móvil">' + NAV.map(([h, t]) => '<a href="' + h + '">' + t + "</a>").join("") + '<a href="pedido.html">Mi bolsa</a><a href="#" class="ai" data-open-chat>LeonIA</a></nav></div>' +
+      '<div class="navpanel" id="navpanel" hidden><nav aria-label="Menú móvil">' + NAV.map(([h, t]) => '<a href="' + h + '">' + t + "</a>").join("") + '<a href="pedido.html">Mi bolsa</a><a href="#" class="ai" data-open-chat>LeonIA</a></nav><div class="navprefs"><button type="button" class="chip" data-toggle-theme>' + ICON.sun + ICON.moon + '<span data-theme-label>Modo claro</span></button><button type="button" class="chip" data-toggle-lang translate="no"><span data-lang-name>English</span></button></div></div>' +
       (B.campaignActive() ? '<div class="ribbon"><b>Black Friday:</b> hasta ' + B.campaign.upTo + '% OFF + 1 accesorio gratis por cualquier compra, hasta el 30 de noviembre. <a href="ofertas.html">Comprar ofertas →</a></div>' : "");
     document.body.prepend(...head.childNodes);
     // alto real de la cinta de campaña → el hero 3D descuenta ese espacio y sus botones no quedan bajo el pliegue
@@ -242,7 +245,7 @@
       close();
       return out;
     }
-    function addMsg(role, text) { const d = document.createElement("div"); d.className = "msg msg--" + (role === "user" ? "me" : "bot"); d.innerHTML = role === "user" ? esc(text) : mdSafe(text); log.appendChild(d); log.scrollTop = log.scrollHeight; return d; }
+    function addMsg(role, text) { const d = document.createElement("div"); d.className = "msg msg--" + (role === "user" ? "me" : "bot"); if (role === "user") d.setAttribute("data-no-i18n", ""); d.innerHTML = role === "user" ? esc(text) : mdSafe(text); log.appendChild(d); log.scrollTop = log.scrollHeight; return d; }
     const safeWa = (u) => typeof u === "string" && u.startsWith("https://wa.me/");
     function cartCardHTML(c) {
       const ids = Object.keys(c || {}).filter((id) => P(id));
@@ -262,7 +265,7 @@
     function restoreLog() {
       log.innerHTML = "";
       if (!LOG.length) addMsg("bot", "¡Hola! Soy **LeonIA** 🦁, tu coach y recepcionista de Bolivia Fitness. Contame tu objetivo y te armo rutina, proteína y suplementos, o preguntame por sucursales, envíos y promos.");
-      LOG.forEach((m) => addMsg(m.role, m.content));
+      LOG.forEach((m) => { const d = addMsg(m.role, m.content); d.setAttribute("data-no-i18n", ""); });
       starterChips();
     }
     openChat = function (ask) { lastFocus = document.activeElement; chat.hidden = false; mountAvatar(); if (typeof ask === "string" && ask) setTimeout(() => send(ask), 60); document.body.classList.add("chat-open"); if (!log.children.length) restoreLog(); updateMbar(); setTimeout(() => $("#chatInput").focus(), 50); if (voice.ok) $("#voicebar").hidden = false; };
@@ -285,7 +288,7 @@
       LS.cart = Object.assign({}, cart); LS.myOrders = store.get("leonia_orders", []);
       let botText = "", bubble = typing, cartCard = null;
       try {
-        const res = await fetch("/api/leonia", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: LOG.slice(-16), state: LS, channel: (opts && opts.voice) ? "voice" : "text" }) });
+        const res = await fetch("/api/leonia", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: LOG.slice(-16), state: LS, channel: (opts && opts.voice) ? "voice" : "text", lang: isEN() ? "en" : "es" }) });
         if (!res.ok || !res.body) {
           typing.remove(); LOG.pop();
           friendlyError([503, 404, 501, 405].includes(res.status) ? "setup" : res.status === 429 ? "rate" : "other");
@@ -298,7 +301,7 @@
           let i; while ((i = buf.indexOf("\n")) >= 0) {
             const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1); if (!line) continue;
             let ev; try { ev = JSON.parse(line); } catch (e) { continue; }
-            if (ev.type === "text") { if (!botText) { clearTimeout(slowT); face("speaking"); } botText += ev.text; if (!bubble.isConnected) bubble = addMsg("bot", ""); bubble.innerHTML = mdSafe(botText); log.scrollTop = log.scrollHeight; }
+            if (ev.type === "text") { if (!botText) { clearTimeout(slowT); face("speaking"); } botText += ev.text; if (!bubble.isConnected) bubble = addMsg("bot", ""); bubble.setAttribute("data-no-i18n", ""); bubble.innerHTML = mdSafe(botText); log.scrollTop = log.scrollHeight; }
             else if (ev.type === "cart") { setCart(ev.cart, { bump: true }); if (cartCard) cartCard.innerHTML = cartCardHTML(ev.cart); else { if (!botText) typing.remove(); cartCard = addCard("", cartCardHTML(ev.cart)); bubble = document.createElement("div"); } }
             else if (ev.type === "options") chips(ev.options);
             else if (ev.type === "readback") { const s = ev.summary || {}; addCard("", "<h4>Revisá tu pedido</h4><ul>" + (s.lines || []).map((l) => "<li><span>" + l.qty + "× " + esc(l.name) + "</span><span>" + money(l.subtotal) + "</span></li>").join("") + '</ul><div class="ctot"><span>Total</span><span>' + money(s.total || 0) + '</span></div><p style="margin:8px 0 0;color:var(--muted)">' + esc([s.service, s.branch, s.address, s.when, s.name, s.gift ? "🎁 " + s.gift : ""].filter(Boolean).join(" · ")) + '</p><div class="qchips" style="margin-top:10px"><button>Sí, confirmar</button><button>Cambiar algo</button></div>'); }
@@ -353,11 +356,11 @@
       $("#voicebar").classList.toggle("live", s !== "idle");
       $("#voiceStatus").textContent = { idle: "Tocá el micrófono y hablá", listening: "Escuchando…", thinking: "Pensando…", speaking: "Hablando… tocá para interrumpir" }[s];
     }
-    function pickVoice() { const vs = speechSynthesis.getVoices(); voice.voiceObj = vs.find((v) => /es-BO/i.test(v.lang)) || vs.find((v) => /es-(419|US|MX|AR)/i.test(v.lang)) || vs.find((v) => /^es/i.test(v.lang)) || null; }
+    function pickVoice() { const vs = speechSynthesis.getVoices(); if (isEN()) { voice.voiceObj = vs.find((v) => /^en-US/i.test(v.lang)) || vs.find((v) => /^en/i.test(v.lang)) || null; return; } voice.voiceObj = vs.find((v) => /es-BO/i.test(v.lang)) || vs.find((v) => /es-(419|US|MX|AR)/i.test(v.lang)) || vs.find((v) => /^es/i.test(v.lang)) || null; }
     function speechText(t) { return t.replace(/\*\*/g, "").replace(/https?:\/\/\S+/g, "").replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, "").replace(/Bs\.?\s?(\d[\d.,]*)/g, "$1 bolivianos").replace(/^\s*[-•]\s*/gm, "").replace(/\s+/g, " ").trim(); }
     function speak(t) {
       if (!voice.lastWasVoice || !("speechSynthesis" in window)) { setVoiceState("idle"); return; }
-      const u = new SpeechSynthesisUtterance(speechText(t)); u.lang = "es-BO"; if (voice.voiceObj) u.voice = voice.voiceObj; u.rate = 1.04;
+      const u = new SpeechSynthesisUtterance(speechText(t)); pickVoice(); u.lang = isEN() ? "en-US" : "es-BO"; if (voice.voiceObj) u.voice = voice.voiceObj; u.rate = 1.04;
       u.onend = () => { voice.speaking = false; setVoiceState("idle"); if ($("#handsfree").checked && !chat.hidden) listen(); };
       voice.speaking = true; setVoiceState("speaking"); speechSynthesis.speak(u);
     }
@@ -366,7 +369,7 @@
     function listen() {
       if (!voice.ok || busy) return;
       stopSpeaking();
-      const r = new SR(); voice.rec = r; r.lang = "es-BO"; r.interimResults = true; r.maxAlternatives = 1;
+      const r = new SR(); voice.rec = r; r.lang = isEN() ? "en-US" : "es-BO"; r.interimResults = true; r.maxAlternatives = 1;
       let final = "";
       r.onresult = (e) => { let interim = ""; for (let i = e.resultIndex; i < e.results.length; i++) { const tr = e.results[i][0].transcript; if (e.results[i].isFinal) final += tr; else interim += tr; } $("#chatInput").value = (final + interim).trim(); };
       r.onerror = (e) => { voice.listening = false; setVoiceState("idle"); if (e.error === "not-allowed" || e.error === "service-not-allowed") addMsg("bot", "No tengo permiso para usar el micrófono. Podés escribirme igual 🙂"); };

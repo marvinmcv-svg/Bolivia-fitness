@@ -72,6 +72,7 @@ function liveContext(ctx, channel) {
     "Perfil de coach: " + (st.profile ? JSON.stringify(st.profile) : "sin datos todavía") + ".",
     "Ya sugeriste algo: " + (st.upsold ? "sí (no sugieras más)" : "no") + ". Novedades ya mostradas: " + (st.newsShown ? "sí" : "no") + ".",
   ];
+  if (ctx.lang === "en") lines.push("IDIOMA: el cliente está usando el sitio en inglés. Respondé SIEMPRE en inglés claro y natural (sin voseo), incluidas las opciones rápidas. Los nombres de productos, precios en Bs y el mensaje de WhatsApp a la tienda quedan como están.");
   if (ctx.autoPlaced) lines.push("PEDIDO YA ENVIADO por el sistema (" + ctx.autoPlaced.id + "): el cliente confirmó. Decile en una frase que toque el botón verde para mandarlo por WhatsApp. No vuelvas a resumir ni a confirmar.");
   return lines.join("\n");
 }

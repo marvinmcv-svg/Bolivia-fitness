@@ -1,5 +1,5 @@
 /* LeonIA · endpoint /api/leonia
-   POST { messages, state, channel: "text"|"voice" } → NDJSON (una línea por evento).
+   POST { messages, state, channel: "text"|"voice", lang: "es"|"en" } → NDJSON (una línea por evento).
    Proveedor: LEONIA_PROVIDER fuerza uno; si no, NVIDIA si hay NVIDIA_API_KEY, si no Anthropic si hay ANTHROPIC_API_KEY. */
 "use strict";
 const { runTool, anthropicTools, openaiTools, createSession, isYes } = require("./_tools");
@@ -170,6 +170,7 @@ async function handler(req, res, opts) {
   if (!history.length || history[history.length - 1].role !== "user") return json(res, 400, { error: "bad_request" });
   const channel = body.channel === "voice" ? "voice" : "text";
   const ctx = createSession(body.state, (opts && opts.now) || new Date());
+  ctx.lang = body.lang === "en" ? "en" : "es";
 
   res.statusCode = 200;
   res.setHeader("Content-Type", "application/x-ndjson; charset=utf-8");
