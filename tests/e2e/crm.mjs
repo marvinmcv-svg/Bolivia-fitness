@@ -41,7 +41,7 @@ async function test(name, fn) {
 const browser = await chromium.launch();
 async function newPage(opts, prefs) {
   const ctx = await browser.newContext(Object.assign({ acceptDownloads: true }, opts || { viewport: { width: 1440, height: 900 } }));
-  await ctx.addInitScript((p) => { try { if (!sessionStorage.getItem("__init")) { sessionStorage.setItem("__init", "1"); localStorage.setItem("bf_lang", p.lang || "es"); localStorage.setItem("bf_theme", p.theme || "dark"); } } catch (e) { /* nada */ } }, prefs || {});
+  await ctx.addInitScript((p) => { try { if (localStorage.getItem("bf_lang") == null) localStorage.setItem("bf_lang", p.lang || "es"); if (localStorage.getItem("bf_theme") == null) localStorage.setItem("bf_theme", p.theme || "dark"); } catch (e) { /* nada */ } }, prefs || {});
   const pg = await ctx.newPage();
   pg.errors = [];
   pg.on("pageerror", (e) => pg.errors.push(e.message));
