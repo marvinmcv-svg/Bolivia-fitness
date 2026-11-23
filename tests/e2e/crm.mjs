@@ -1,6 +1,8 @@
 // Bolivia Fitness CRM · prueba end-to-end completa con Playwright (sin dependencias extra).
 // Uso:  node tests/e2e/crm.mjs [baseURL] [carpetaCapturas]
 //   baseURL por defecto: el archivo local crm/index.html (file://). Ej. producción: https://bolivia-fitness.vercel.app/crm/
+//   Recomendado: una URL http(s). Con file:// Chromium a veces pierde localStorage al recargar
+//   (las pruebas de "se recuerda al recargar" pueden fallar sin que sea un error del CRM).
 // Cubre: login y roles, cada módulo en 6 pantallas (teléfono → escritorio), desborde horizontal, tamaño táctil,
 // accesibilidad básica, idioma ES/EN (y que no quede español en inglés), tema, persistencia, y todos los flujos
 // de edición del dueño (ventas, anulación, clientes, oportunidades, inventario, catálogo, transferencias,
