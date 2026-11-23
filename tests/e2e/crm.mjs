@@ -288,7 +288,7 @@ await test("personal: agregar, editar comisión, entrar con su PIN y eliminar", 
   const id = await db(pg, () => CRMDB.db.staff.find((s) => s.name === "Vendedora Test").id);
   await pg.click('[data-ed="' + id + '"]'); await pg.fill("#modal [name=commission]", "5"); await submitModal(pg);
   eq(await db(pg, (i) => CRMDB.person(i).commission, id), 5, "comisión");
-  const p2 = await pg.context().newPage(); p2.on("dialog", (d) => d.accept());
+  await pg.waitForTimeout(700); const p2 = await pg.context().newPage(); p2.on("dialog", (d) => d.accept());
   await p2.goto(BASE, { waitUntil: "domcontentloaded" }); await p2.waitForSelector("#view .vh1");
   assert((await p2.textContent(".me")).includes("Dueño"), "la sesión no pasó a la pestaña nueva");
   await p2.click("#logout"); await p2.waitForSelector("#lf"); await p2.selectOption("select[name=u]", id); await p2.fill("input[name=pin]", "4321"); await p2.click("#lf button"); await p2.waitForSelector("#view .vh1");
@@ -368,7 +368,7 @@ await test("filtros: período y sucursal cambian los números y se recuerdan al 
   const a = await pg.textContent(".kpi__v"); await pg.selectOption("#fPeriod", "7d"); const b = await pg.textContent(".kpi__v");
   assert(a !== b, "el período no cambia las ventas");
   await pg.selectOption("#fBranch", "su-centro"); const c = await pg.textContent(".kpi__v"); assert(c !== b, "la sucursal no cambia las ventas");
-  await pg.reload({ waitUntil: "domcontentloaded" }); await pg.waitForSelector("#view .vh1");
+  await pg.waitForTimeout(700); await pg.reload({ waitUntil: "domcontentloaded" }); await pg.waitForSelector("#view .vh1");
   eq(await pg.inputValue("#fBranch"), "su-centro", "no recordó la sucursal"); eq(await pg.inputValue("#fPeriod"), "7d", "no recordó el período");
   await pg.selectOption("#fBranch", "all");
 });
@@ -382,10 +382,10 @@ await test("gráficos: tooltip al pasar el mouse por la línea y las barras", as
 });
 await test("persistencia: los cambios sobreviven a recargar y a cerrar sesión", async () => {
   await db(pg, () => { CRMDB.member("m-1001").name = "Persistente Test"; CRMDB.save(); });
-  await pg.reload({ waitUntil: "domcontentloaded" }); await pg.waitForSelector("#view");
+  await pg.waitForTimeout(700); await pg.reload({ waitUntil: "domcontentloaded" }); await pg.waitForSelector("#view");
   eq(await db(pg, () => CRMDB.member("m-1001").name), "Persistente Test", "no persistió");
   await pg.click("#logout"); await pg.waitForSelector("#lf");
-  await pg.reload({ waitUntil: "domcontentloaded" }); await pg.waitForSelector("#lf"); // cerrar sesión no se deshace al recargar
+  await pg.waitForTimeout(700); await pg.reload({ waitUntil: "domcontentloaded" }); await pg.waitForSelector("#lf"); // cerrar sesión no se deshace al recargar
   await pg.fill("input[name=pin]", "1234"); await pg.click("#lf button"); await pg.waitForSelector("#view .vh1");
   eq(await db(pg, () => CRMDB.member("m-1001").name), "Persistente Test", "se perdió al cerrar sesión");
 });
@@ -419,7 +419,7 @@ for (const [vname, opts] of [VIEWPORTS[1], VIEWPORTS[5]]) {
         return out;
       })).forEach((x) => leftovers.add(m + ": " + x));
     }
-    await p.reload({ waitUntil: "domcontentloaded" }); await p.waitForSelector("#view .vh1"); eq(await p.getAttribute("html", "lang"), "en", "no recordó el inglés");
+    await p.waitForTimeout(700); await p.reload({ waitUntil: "domcontentloaded" }); await p.waitForSelector("#view .vh1"); eq(await p.getAttribute("html", "lang"), "en", "no recordó el inglés");
     await p.click('.top [data-lang="es"]'); await p.waitForTimeout(200);
     eq(await p.getAttribute("html", "lang"), "es-BO", "no volvió a español");
     assert(!leftovers.size, leftovers.size + " textos en español: " + [...leftovers].slice(0, 6).join(" | "));
@@ -433,7 +433,7 @@ await test("tema claro/oscuro se aplica y se recuerda", async () => {
   eq(await p.getAttribute("html", "data-theme"), "dark", "tema inicial");
   await p.click("#themeBtn"); eq(await p.getAttribute("html", "data-theme"), "light", "no cambió a claro");
   const bg = await p.evaluate(() => getComputedStyle(document.body).backgroundColor); assert(bg !== "rgb(8, 6, 6)", "el fondo no cambió");
-  await p.reload({ waitUntil: "domcontentloaded" }); await p.waitForSelector("#view"); eq(await p.getAttribute("html", "data-theme"), "light", "no recordó el tema");
+  await p.waitForTimeout(700); await p.reload({ waitUntil: "domcontentloaded" }); await p.waitForSelector("#view"); eq(await p.getAttribute("html", "data-theme"), "light", "no recordó el tema");
   await shot(p, "crm-light-dashboard");
   await p.context().close();
 });
