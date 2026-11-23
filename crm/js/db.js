@@ -138,23 +138,70 @@
     ];
 
     members.forEach((m) => delete m.act);
-    return { v: 1, seededAt: iso(now), branches: BRANCHES.map((b) => Object.assign({}, b)), staff, members, inventory, sales, leads, tasks, campaigns, shifts, transfers, cost: {}, log: [{ at: iso(now), who: "sistema", what: "Datos de demostración generados" }] };
+    return { v: 1, seededAt: iso(now), branches: BRANCHES.map((b) => Object.assign({}, b)), staff, members, inventory, sales, leads, tasks, campaigns, shifts, transfers, cost: {}, prod: {}, custom: [], loyalty: { per: 10, redeem: 10, maxPct: 20, tiers: { plata: 300, oro: 900, leon: 2000 } }, log: [{ at: iso(now), who: "sistema", what: "Datos de demostración generados" }] };
   }
 
   /* ---------- almacenamiento ---------- */
   let DB = null;
   function load() {
-    try { const raw = localStorage.getItem(KEY); if (raw) { DB = JSON.parse(raw); return DB; } } catch (e) { /* datos dañados → nueva semilla */ }
+    try { const raw = localStorage.getItem(KEY); if (raw) { DB = migrate(JSON.parse(raw)); return DB; } } catch (e) { /* datos dañados → nueva semilla */ }
     DB = seed(new Date()); save(); return DB;
+  }
+  function migrate(d) {
+    d.cost = d.cost || {}; d.prod = d.prod || {}; d.custom = d.custom || [];
+    d.loyalty = d.loyalty || { per: 10, redeem: 10, maxPct: 20, tiers: { plata: 300, oro: 900, leon: 2000 } };
+    return d;
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) { console.warn("No se pudo guardar", e); } }
   function reset() { DB = seed(new Date()); save(); }
   function log(who, what) { DB.log.unshift({ at: iso(Date.now()), who, what }); DB.log = DB.log.slice(0, 300); }
 
   /* ---------- catálogo ---------- */
-  const product = (id) => { const p = B.products.find((x) => x.id === id); if (!p) return null; return Object.assign({}, p, { price: B.priceOf(p), brandName: B.brands[p.brand].name, cost: DB.cost[id] != null ? DB.cost[id] : Math.round((p.before || p.price) * .58) }); };
-  const products = () => B.products.map((p) => product(p.id));
-  const branch = (id) => DB.branches.find((b) => b.id === id) || null;
+  const base = (id) => B.products.find((x) => x.id === id) || DB.custom.find((x) => x.id === id) || null;
+  const product = (id) => {
+    const p = base(id) || { id, short: String(id), name: String(id), cat: "accesorios", brand: "bf", size: "", price: 0, img: "assets/img/logo.png", deleted: true };
+    const o = DB.prod[id] || {}, custom = !B.products.includes(p);
+    const price = o.price != null ? o.price : custom ? p.price : B.priceOf(p);
+    return Object.assign({}, p, o, { price, custom, hidden: !!(o.hidden || p.hidden), brandName: (B.brands[p.brand] || { name: p.brandName || "Bolivia Fitness" }).name,
+      cost: DB.cost[id] != null ? DB.cost[id] : Math.round((p.before || price) * .58) });
+  };
+  // all=true incluye productos ocultos (para el catálogo del dueño)
+  const products = (all) => B.products.map((p) => p.id).concat(DB.custom.map((p) => p.id)).map(product).filter((p) => !p.deleted && (all || !p.hidden));
+  function editProduct(id, patch, who) {
+    const p = base(id); if (!p) return;
+    if (!B.products.includes(p)) Object.assign(p, patch);
+    else DB.prod[id] = Object.assign({}, DB.prod[id], patch);
+    log(who, "Producto editado: " + (patch.short || product(id).short)); save();
+  }
+  function addProduct(p, who) {
+    const id = "cx-" + Date.now().toString(36);
+    DB.custom.push(Object.assign({ id, line: id, brand: "bf", img: "assets/img/logo.png", servings: null, flavor: null, before: null, desc: "" }, p, { id }));
+    DB.branches.forEach((b) => { DB.inventory[b.id][id] = { qty: 0, min: 2, exp: null }; });
+    log(who, "Producto nuevo: " + p.short); save(); return id;
+  }
+  function deleteProduct(id, who) {
+    const c = DB.custom.find((x) => x.id === id); if (!c) return false;
+    // con ventas: se archiva para no romper el historial; sin ventas: se borra
+    if (DB.sales.some((s) => s.lines.some((l) => l.pid === id))) c.deleted = true;
+    else DB.custom = DB.custom.filter((x) => x.id !== id);
+    DB.branches.forEach((b) => delete DB.inventory[b.id][id]);
+    log(who, "Producto eliminado " + id); save(); return true;
+  }
+  function addBranch(b, who) {
+    const id = "br-" + Date.now().toString(36);
+    DB.branches.push(Object.assign({ id, weight: 1, target: 50000, open: "", close: "", address: "" }, b, { id }));
+    DB.inventory[id] = {}; products(true).forEach((p) => { DB.inventory[id][p.id] = { qty: 0, min: 2, exp: null }; });
+    log(who, "Sucursal nueva: " + b.name); save(); return id;
+  }
+  function removeBranch(id, who) {
+    const b = branch(id); if (!b || DB.branches.length < 2) return false;
+    DB.branches = DB.branches.filter((x) => x.id !== id); delete DB.inventory[id];
+    DB.staff.forEach((s) => { if (s.branchId === id) { s.branchId = null; s.active = false; } });
+    DB.members.forEach((m) => { if (m.branchId === id) m.branchId = DB.branches[0].id; });
+    DB.removedBranches = (DB.removedBranches || []).concat([{ id, name: b.name, city: b.city }]);
+    log(who, "Sucursal eliminada: " + b.name); save(); return true;
+  }
+  const branch = (id) => DB.branches.find((b) => b.id === id) || (DB.removedBranches || []).find((b) => b.id === id) || null;
   const person = (id) => DB.staff.find((s) => s.id === id) || null;
   const member = (id) => DB.members.find((m) => m.id === id) || null;
 
@@ -188,7 +235,7 @@
     return Object.values(m).sort((a, b) => b.rev - a.rev);
   }
   const byProduct = (f) => groupBy(f, (l) => l.pid);
-  const byCategory = (f) => groupBy(f, (l) => (B.products.find((p) => p.id === l.pid) || {}).cat);
+  const byCategory = (f) => groupBy(f, (l) => (product(l.pid) || {}).cat);
   const byBranch = (f) => groupBy(Object.assign({}, f, { branch: "all" }), (l, s) => s.branchId);
   const byStaff = (f) => groupBy(f, (l, s) => s.staffId);
   function byPayment(f) { const m = {}; salesIn(f).forEach((s) => { m[s.payment] = (m[s.payment] || 0) + s.total; }); return Object.entries(m).map(([key, rev]) => ({ key, rev })).sort((a, b) => b.rev - a.rev); }
@@ -196,8 +243,8 @@
   function byHour(f) { const h = Array.from({ length: 24 }, (_, i) => ({ key: i, rev: 0, orders: 0 })); salesIn(f).forEach((s) => { const hr = +new Intl.DateTimeFormat("en-GB", { timeZone: B.config.timezone, hour: "2-digit", hour12: false }).format(new Date(s.date)) % 24; h[hr].rev += s.total; h[hr].orders++; }); return h; }
 
   /* ---------- clientes ---------- */
-  const TIERS = [{ id: "bronce", min: 0 }, { id: "plata", min: 300 }, { id: "oro", min: 900 }, { id: "leon", min: 2000 }];
-  const tier = (pts) => TIERS.slice().reverse().find((t) => pts >= t.min).id;
+  const tiers = () => [{ id: "bronce", min: 0 }].concat(["plata", "oro", "leon"].map((id) => ({ id, min: DB.loyalty.tiers[id] })));
+  const tier = (pts) => tiers().slice().reverse().find((t) => pts >= t.min).id;
   function salesByMember() { const m = {}; DB.sales.forEach((x) => { if (x.memberId && x.status !== "anulada") (m[x.memberId] = m[x.memberId] || []).push(x); }); return m; }
   function memberStats(id, idx) {
     const s = ((idx ? idx[id] : DB.sales.filter((x) => x.memberId === id && x.status !== "anulada")) || []).slice().sort((a, b) => b.date.localeCompare(a.date));
@@ -219,15 +266,15 @@
     const s = Object.assign({ id: "V-" + String(100000 + DB.sales.length), date: iso(Date.now()), status: "pagada", discount: 0, gift: "" }, sale);
     s.total = round(Math.max(0, sum(s.lines, (l) => l.qty * l.price) - (s.discount || 0)));
     DB.sales.push(s);
-    s.lines.forEach((l) => { const inv = DB.inventory[s.branchId][l.pid]; if (inv) inv.qty = Math.max(0, inv.qty - l.qty); });
-    if (s.memberId) { const m = member(s.memberId); if (m) m.points += Math.floor(s.total / 10) - (s.pointsUsed || 0); }
+    s.lines.forEach((l) => { const inv = (DB.inventory[s.branchId] || {})[l.pid]; if (inv) inv.qty = Math.max(0, inv.qty - l.qty); });
+    if (s.memberId) { const m = member(s.memberId); if (m) m.points = Math.max(0, m.points + Math.floor(s.total / DB.loyalty.per) - (s.pointsUsed || 0)); }
     log(who, "Venta " + s.id + " · Bs " + s.total + " · " + branch(s.branchId).name); save(); return s;
   }
   function voidSale(id, who) {
     const s = DB.sales.find((x) => x.id === id); if (!s || s.status === "anulada") return;
     s.status = "anulada";
-    s.lines.forEach((l) => { const inv = DB.inventory[s.branchId][l.pid]; if (inv) inv.qty += l.qty; });
-    if (s.memberId) { const m = member(s.memberId); if (m) m.points = Math.max(0, m.points - Math.floor(s.total / 10)); }
+    s.lines.forEach((l) => { const inv = (DB.inventory[s.branchId] || {})[l.pid]; if (inv) inv.qty += l.qty; });
+    if (s.memberId) { const m = member(s.memberId); if (m) m.points = Math.max(0, m.points - Math.floor(s.total / DB.loyalty.per) + (s.pointsUsed || 0)); }
     log(who, "Venta anulada " + id); save();
   }
   function upsert(coll, obj, prefix, who) {
@@ -237,19 +284,22 @@
     save(); return o;
   }
   function remove(coll, id, who) { DB[coll] = DB[coll].filter((x) => x.id !== id); log(who, "Eliminado " + id); save(); }
-  function adjustStock(bid, pid, delta, reason, who) { const inv = DB.inventory[bid][pid]; inv.qty = Math.max(0, inv.qty + delta); log(who, "Ajuste de stock " + pid + " (" + (delta > 0 ? "+" : "") + delta + ") en " + branch(bid).name + (reason ? " · " + reason : "")); save(); }
-  function setStock(bid, pid, patch, who) { Object.assign(DB.inventory[bid][pid], patch); log(who, "Stock editado " + pid + " en " + branch(bid).name); save(); }
+  function inv(bid, pid) { DB.inventory[bid] = DB.inventory[bid] || {}; return DB.inventory[bid][pid] || (DB.inventory[bid][pid] = { qty: 0, min: 2, exp: null }); }
+  function cancelTransfer(id, who) { const tr = DB.transfers.find((x) => x.id === id); if (!tr || tr.status !== "en camino") return; tr.status = "cancelada"; tr.lines.forEach((l) => { inv(tr.from, l.pid).qty += l.qty; }); log(who, "Transferencia cancelada " + id); save(); }
+  function adjustStock(bid, pid, delta, reason, who) { const r = inv(bid, pid); r.qty = Math.max(0, r.qty + delta); log(who, "Ajuste de stock " + pid + " (" + (delta > 0 ? "+" : "") + delta + ") en " + branch(bid).name + (reason ? " · " + reason : "")); save(); }
+  function setStock(bid, pid, patch, who) { Object.assign(inv(bid, pid), patch); log(who, "Stock editado " + pid + " en " + branch(bid).name); save(); }
   function transfer(t, who) {
     const tr = Object.assign({ id: "TR-" + (DB.transfers.length + 1), date: iso(Date.now()), status: "en camino", by: who }, t);
-    tr.lines.forEach((l) => { const inv = DB.inventory[tr.from][l.pid]; inv.qty = Math.max(0, inv.qty - l.qty); });
+    tr.lines.forEach((l) => { const r = inv(tr.from, l.pid); r.qty = Math.max(0, r.qty - l.qty); });
     DB.transfers.unshift(tr); log(who, "Transferencia " + tr.id + ": " + branch(tr.from).name + " → " + branch(tr.to).name); save(); return tr;
   }
-  function receive(id, who) { const tr = DB.transfers.find((x) => x.id === id); if (!tr || tr.status === "recibida") return; tr.status = "recibida"; tr.lines.forEach((l) => { DB.inventory[tr.to][l.pid].qty += l.qty; }); log(who, "Transferencia recibida " + id); save(); }
+  function receive(id, who) { const tr = DB.transfers.find((x) => x.id === id); if (!tr || tr.status === "recibida") return; tr.status = "recibida"; tr.lines.forEach((l) => { inv(tr.to, l.pid).qty += l.qty; }); log(who, "Transferencia recibida " + id); save(); }
 
   function exportJSON() { return JSON.stringify(DB, null, 1); }
   function importJSON(txt) { const d = JSON.parse(txt); if (!d || !d.sales || !d.members || !d.inventory) throw new Error("bad"); DB = d; save(); }
   function toCSV(rows) { if (!rows.length) return ""; const cols = Object.keys(rows[0]); const q = (v) => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"'; return [cols.map(q).join(",")].concat(rows.map((r) => cols.map((c) => q(r[c])).join(","))).join("\n"); }
 
   window.CRMDB = { load, save, reset, get db() { return DB; }, product, products, branch, person, member, range, salesIn, kpis, series, byProduct, byCategory, byBranch, byStaff, byPayment, byChannel, byHour,
-    tier, TIERS, memberStats, salesByMember, addSale, voidSale, upsert, remove, adjustStock, setStock, transfer, receive, exportJSON, importJSON, toCSV, dayKey, DAY, ROLES, PAYMENTS, SOURCES, GOALS, log };
+    get TIERS() { return tiers(); }, inv, cancelTransfer, editProduct, addProduct, deleteProduct, addBranch, removeBranch,
+    tier, memberStats, salesByMember, addSale, voidSale, upsert, remove, adjustStock, setStock, transfer, receive, exportJSON, importJSON, toCSV, dayKey, DAY, ROLES, PAYMENTS, SOURCES, GOALS, log };
 })();

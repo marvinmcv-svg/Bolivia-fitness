@@ -17,20 +17,27 @@
   const today = () => D.dayKey(Date.now());
   const wa = (phone, text) => "https://wa.me/" + String(phone).replace(/\D/g, "") + (text ? "?text=" + encodeURIComponent(text) : "");
   const P = (id) => D.product(id), BR = (id) => D.branch(id), ST = (id) => D.person(id), M = (id) => D.member(id);
-  const pname = (id) => { const p = P(id); return p ? p.short : id; };
+  const pname = (id) => { const p = P(id); return p ? T.tp(p.short) : id; };
   const catName = (id) => t((B.categories.find((c) => c.id === id) || {}).name || id);
 
   /* ---------- sesión y permisos ---------- */
   const PERMS = {
-    owner: ["dashboard", "pos", "sales", "members", "pipeline", "inventory", "transfers", "branches", "staff", "schedule", "campaigns", "tasks", "reports", "settings"],
-    admin: ["dashboard", "pos", "sales", "members", "pipeline", "inventory", "transfers", "branches", "staff", "schedule", "campaigns", "tasks", "reports", "settings"],
+    owner: ["dashboard", "pos", "sales", "members", "pipeline", "inventory", "catalog", "transfers", "branches", "staff", "schedule", "campaigns", "tasks", "reports", "settings"],
+    admin: ["dashboard", "pos", "sales", "members", "pipeline", "inventory", "catalog", "transfers", "branches", "staff", "schedule", "campaigns", "tasks", "reports", "settings"],
     manager: ["dashboard", "pos", "sales", "members", "pipeline", "inventory", "transfers", "branches", "staff", "schedule", "campaigns", "tasks", "reports"],
     seller: ["dashboard", "pos", "sales", "members", "pipeline", "inventory", "tasks"],
     coach: ["dashboard", "pos", "sales", "members", "pipeline", "tasks"],
     warehouse: ["dashboard", "inventory", "transfers", "tasks"],
   };
   let ME = null;
-  try { ME = ST(sessionStorage.getItem("bfcrm_user")); } catch (e) { /* sin sesión */ }
+  // sesión: la pestaña actual y, como respaldo, 12 h en este dispositivo
+  const SESS_MS = 12 * 3600000;
+  function setSession(id) { try { if (id) { sessionStorage.setItem("bfcrm_user", id); localStorage.setItem("bfcrm_session", JSON.stringify({ id, at: Date.now() })); } else { sessionStorage.removeItem("bfcrm_user"); localStorage.removeItem("bfcrm_session"); } } catch (e) { /* modo privado */ } }
+  try {
+    let id = sessionStorage.getItem("bfcrm_user");
+    if (!id) { const ls = JSON.parse(localStorage.getItem("bfcrm_session") || "null"); if (ls && Date.now() - ls.at < SESS_MS) id = ls.id; }
+    const u = ST(id); if (u && u.active) { ME = u; setSession(u.id); }
+  } catch (e) { /* sin sesión */ }
   const can = (mod) => ME && PERMS[ME.role].includes(mod);
   const global = () => ["owner", "admin"].includes(ME.role) || ME.role === "warehouse";
   const who = () => (ME ? ME.name : "—");
@@ -64,9 +71,10 @@
     menu: ic('<path d="M4 7h16M4 12h16M4 17h16"/>'),
     plus: ic('<path d="M12 5v14M5 12h14"/>'), wa: ic('<path d="M5 19l1.2-3.6A7.5 7.5 0 1 1 9 18.6z"/>'), out: ic('<path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/>'),
     alert: ic('<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/>'), check: ic('<path d="M5 12.5l4.5 4.5L19 7"/>'), x: ic('<path d="M6 6l12 12M18 6L6 18"/>'),
+    catalog: ic('<path d="M4 5h7v7H4zM13 5h7v7h-7zM4 14h7v6H4zM13 14h7v6h-7z"/>'),
     dl: ic('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>'),
   };
-  const NAV = [["dashboard", "Panel"], ["pos", "Punto de venta"], ["sales", "Ventas"], ["members", "Clientes"], ["pipeline", "Oportunidades"], ["inventory", "Inventario"], ["transfers", "Transferencias"], ["branches", "Sucursales"], ["staff", "Personal"], ["schedule", "Turnos"], ["campaigns", "Campañas"], ["tasks", "Tareas"], ["reports", "Reportes"], ["settings", "Ajustes"]];
+  const NAV = [["dashboard", "Panel"], ["pos", "Punto de venta"], ["sales", "Ventas"], ["members", "Clientes"], ["pipeline", "Oportunidades"], ["inventory", "Inventario"], ["catalog", "Catálogo"], ["transfers", "Transferencias"], ["branches", "Sucursales"], ["staff", "Personal"], ["schedule", "Turnos"], ["campaigns", "Campañas"], ["tasks", "Tareas"], ["reports", "Reportes"], ["settings", "Ajustes"]];
   const ROLE = { owner: "Dueño", admin: "Administración", manager: "Encargado de sucursal", seller: "Vendedor", coach: "Coach", warehouse: "Almacén" };
   const SEG = { vip: "VIP", frecuente: "Frecuente", nuevo: "Nuevo", riesgo: "En riesgo", inactivo: "Sin compras" };
   const TIER = { bronce: "Bronce", plata: "Plata", oro: "Oro", leon: "León" };
@@ -98,9 +106,10 @@
     o = o || {};
     const dlg = $("#modal");
     dlg.innerHTML = '<form method="dialog" class="mdl' + (o.wide ? " mdl--wide" : "") + '"><header><h2>' + esc(title) + '</h2><button type="button" class="ib" data-close aria-label="' + esc(t("Cerrar")) + '">' + I.x + "</button></header><div class=\"mdl__b\">" + body + "</div>" +
-      (onSave ? '<footer><button type="button" class="btn btn--ghost" data-close>' + esc(t("Cancelar")) + '</button><button class="btn" value="ok">' + esc(o.ok || t("Guardar")) + "</button></footer>" : "") + "</form>";
+      (onSave || o.extra ? '<footer>' + (o.extra ? '<button type="button" class="btn btn--danger" data-extra>' + esc(o.extra.label) + "</button>" : "") + (onSave ? '<button type="button" class="btn btn--ghost" data-close>' + esc(t("Cancelar")) + '</button><button class="btn" value="ok">' + esc(o.ok || t("Guardar")) + "</button>" : "") + "</footer>" : "") + "</form>";
     const form = dlg.querySelector("form");
     dlg.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", () => dlg.close()));
+    const ex = dlg.querySelector("[data-extra]"); if (ex) ex.addEventListener("click", () => { if (o.extra.confirm && !confirm(o.extra.confirm)) return; if (o.extra.onClick() !== false) dlg.close(); });
     form.addEventListener("submit", (e) => { if (!onSave) return; e.preventDefault(); const r = onSave(new FormData(form), form); if (r !== false) { dlg.close(); } });
     dlg.showModal(); if (o.onOpen) o.onOpen(form);
     const f = form.querySelector("input:not([type=hidden]), select, textarea"); if (f && !o.noFocus) f.focus();
@@ -109,18 +118,20 @@
   const field = (lbl, html, cls) => '<label class="fld' + (cls ? " " + cls : "") + '"><span>' + esc(lbl) + "</span>" + html + "</label>";
   const inp = (name, val, o) => '<input name="' + name + '" value="' + esc(val == null ? "" : val) + '"' + (o || "") + ">";
 
+  const langSw = () => '<div class="langsw" role="group" aria-label="Idioma / Language">' + [["es", "ES"], ["en", "EN"]].map(([k, l]) => '<button type="button" data-lang="' + k + '" aria-pressed="' + (T.lang() === k) + '" aria-label="' + (k === "es" ? "Español" : "English") + '">' + l + "</button>").join("") + "</div>";
+  document.addEventListener("click", (e) => { const b = e.target.closest("[data-lang]"); if (!b || b.dataset.lang === T.lang()) return; T.set(b.dataset.lang); if (ME) { shell(); route(); } else login(); });
   /* ---------- layout ---------- */
   function shell() {
     document.body.innerHTML =
       '<a class="skip" href="#view">' + esc(t("Saltar al contenido")) + "</a>" +
       '<aside class="side" id="side"><a class="brand" href="#/dashboard"><img src="../assets/img/logo.png" width="34" height="34" alt=""><span>Bolivia <b>Fitness</b><small>CRM</small></span></a><nav aria-label="CRM">' +
       NAV.filter(([k]) => can(k)).map(([k, l]) => '<a href="#/' + k + '" data-nav="' + k + '">' + I[k] + "<span>" + esc(t(l)) + "</span></a>").join("") +
-      '</nav><div class="side__foot"><a href="../index.html" target="_blank" rel="noopener">' + esc(t("Ver tienda online")) + ' ↗</a></div></aside><div class="scrim" id="scrim"></div>' +
+      '</nav><div class="side__foot"><div class="side__lang"><span>' + esc(t("Idioma")) + "</span>" + langSw() + '</div><a href="../index.html" target="_blank" rel="noopener">' + esc(t("Ver tienda online")) + ' ↗</a></div></aside><div class="scrim" id="scrim"></div>' +
       '<div class="main"><header class="top"><button class="ib top__menu" id="menuBtn" aria-label="' + esc(t("Menú")) + '">' + I.menu + "</button>" +
       '<label class="gsearch">' + I.search + '<span class="vh">' + esc(t("Buscar")) + '</span><input id="gq" type="search" placeholder="' + esc(t("Buscar clientes, productos, ventas…")) + '" autocomplete="off"><div class="gres" id="gres" hidden></div></label>' +
       '<div class="top__f">' + (global() ? '<label><span class="vh">' + esc(t("Sucursal")) + '</span><select id="fBranch" class="sel">' + branchOpts(S.branch, true) + "</select></label>" : '<span class="pill">' + esc(bname(ME.branchId)) + "</span>") +
       '<label><span class="vh">' + esc(t("Período")) + '</span><select id="fPeriod" class="sel">' + [["today", "Hoy"], ["7d", "7 días"], ["30d", "30 días"], ["90d", "90 días"]].map(([v, l]) => opt(v, t(l), S.period)).join("") + "</select></label></div>" +
-      '<div class="top__r"><button class="ib" id="themeBtn" aria-label="' + esc(t("Cambiar tema")) + '">' + I.sun + I.moon + '</button><button class="ib langb" id="langBtn" aria-label="' + esc(T.lang() === "en" ? "Cambiar a español" : "Switch to English") + '">' + (T.lang() === "en" ? "ES" : "EN") + "</button>" +
+      '<div class="top__r"><button class="ib" id="themeBtn" aria-label="' + esc(t("Cambiar tema")) + '">' + I.sun + I.moon + '</button>' + langSw() +
       '<div class="me">' + avatar(ME.name) + "<div><b>" + esc(ME.name) + "</b><small>" + esc(t(ROLE[ME.role])) + '</small></div><button class="ib" id="logout" aria-label="' + esc(t("Cerrar sesión")) + '">' + I.out + "</button></div></div></header>" +
       '<div class="demo">' + esc(t("Modo demostración: los clientes, ventas y stock son ficticios y se guardan solo en este navegador.")) + ' <a href="#/settings">' + esc(t("Más info")) + "</a></div>" +
       '<main id="view" tabindex="-1"></main></div><dialog id="modal"></dialog><div class="toast" id="toast" role="status" aria-live="polite"></div>';
@@ -129,8 +140,7 @@
     if ($("#fBranch")) $("#fBranch").addEventListener("change", (e) => { S.branch = e.target.value; saveS(); route(); });
     $("#fPeriod").addEventListener("change", (e) => { S.period = e.target.value; saveS(); route(); });
     $("#themeBtn").addEventListener("click", () => { const n = document.documentElement.dataset.theme === "light" ? "dark" : "light"; document.documentElement.dataset.theme = n; try { localStorage.setItem("bf_theme", n); } catch (e) { /* nada */ } route(); });
-    $("#langBtn").addEventListener("click", () => { T.set(T.lang() === "en" ? "es" : "en"); shell(); route(); });
-    $("#logout").addEventListener("click", () => { try { sessionStorage.removeItem("bfcrm_user"); } catch (e) { /* nada */ } ME = null; login(); });
+    $("#logout").addEventListener("click", () => { setSession(null); ME = null; login(); });
     // búsqueda global
     const gq = $("#gq"), gres = $("#gres");
     gq.addEventListener("input", () => {
@@ -156,12 +166,11 @@
       '<form id="lf"><label class="fld"><span>' + esc(t("Usuario")) + '</span><select name="u" class="sel">' + groups.map((g) => '<optgroup label="' + esc(g.map((r) => t(ROLE[r])).join(" / ")) + '">' + D.db.staff.filter((s) => s.active && g.includes(s.role)).map((s) => opt(s.id, s.name + (s.branchId ? " · " + bname(s.branchId) : ""), "st-owner")).join("") + "</optgroup>").join("") + "</select></label>" +
       '<label class="fld"><span>PIN</span><input name="pin" type="password" inputmode="numeric" maxlength="6" autocomplete="off" required></label><p class="err" id="lerr" aria-live="polite"></p><button class="btn btn--block">' + esc(t("Entrar")) + "</button></form>" +
       '<p class="hint">' + esc(t("Demo: el PIN de todos los usuarios es 1234. Cada rol ve solo lo que le corresponde.")) + "</p>" +
-      '<div class="login__tg"><button class="ib" id="langL">' + (T.lang() === "en" ? "ES" : "EN") + "</button></div></div></main>";
-    $("#langL").addEventListener("click", () => { T.set(T.lang() === "en" ? "es" : "en"); login(); });
+      '<div class="login__tg">' + langSw() + "</div></div></main>";
     $("#lf").addEventListener("submit", (e) => {
       e.preventDefault(); const f = new FormData(e.target), u = ST(f.get("u"));
       if (!u || f.get("pin") !== u.pin) { $("#lerr").textContent = t("PIN incorrecto."); return; }
-      ME = u; try { sessionStorage.setItem("bfcrm_user", u.id); } catch (er) { /* nada */ }
+      ME = u; setSession(u.id);
       D.log(u.name, "Inició sesión"); D.save(); document.body.className = ""; shell(); location.hash = "#/dashboard"; route();
     });
   }
@@ -235,33 +244,33 @@
     const cats = [["all", t("Todo")]].concat(B.categories.map((c) => [c.id, t(c.name)]));
     $("#pcats").innerHTML = cats.map(([k, l]) => '<button class="chip" data-c="' + k + '" aria-pressed="' + (k === qcat) + '">' + esc(l) + "</button>").join("");
     function grid() {
-      const inv = D.db.inventory[bid];
+      
       const list = D.products().filter((p) => (qcat === "all" || p.cat === qcat) && (!qtext || norm(p.short + " " + p.name + " " + p.brandName + " " + (p.flavor || "")).includes(norm(qtext))));
-      $("#pgrid").innerHTML = list.map((p) => { const s = inv[p.id].qty; return '<button class="pc' + (s ? "" : " pc--out") + '" data-p="' + p.id + '"' + (s ? "" : " disabled") + '><img src="../' + esc(p.img) + '" width="96" height="96" alt="" loading="lazy"><span class="pc__n">' + esc(p.short) + '</span><span class="pc__m"><b>' + money(p.price) + "</b><small>" + (s ? num(s) + " " + t("en stock") : t("Agotado")) + "</small></span></button>"; }).join("") || empty(t("Sin productos."));
+      $("#pgrid").innerHTML = list.map((p) => { const s = D.inv(bid, p.id).qty; return '<button class="pc' + (s ? "" : " pc--out") + '" data-p="' + p.id + '"' + (s ? "" : " disabled") + '><img src="../' + esc(p.img) + '" width="96" height="96" alt="" loading="lazy"><span class="pc__n">' + esc(T.tp(p.short)) + '</span><span class="pc__m"><b>' + money(p.price) + "</b><small>" + (s ? num(s) + " " + t("en stock") : t("Agotado")) + "</small></span></button>"; }).join("") || empty(t("Sin productos."));
     }
     function cart() {
       const lines = Object.entries(CART.lines).filter(([, n]) => n > 0);
       const sub = lines.reduce((a, [pid, n]) => a + P(pid).price * n, 0);
       const m = CART.member ? M(CART.member) : null;
-      const maxPts = m ? Math.min(m.points, Math.floor(sub * .2) * 10) : 0;
-      const ptsDisc = CART.usePoints && m ? Math.floor(maxPts / 10) : 0;
+      const L = D.db.loyalty, maxPts = m ? Math.min(m.points, Math.floor(sub * L.maxPct / 100) * L.redeem) : 0;
+      const ptsDisc = CART.usePoints && m ? Math.floor(maxPts / L.redeem) : 0;
       const total = Math.max(0, sub - (+CART.discount || 0) - ptsDisc);
       $("#cart").innerHTML = '<header class="card__h"><h2>' + esc(t("Venta actual")) + "</h2>" + (lines.length ? '<button class="link" id="clr">' + esc(t("Vaciar")) + "</button>" : "") + "</header>" +
         '<div class="cust">' + (m ? avatar(m.name) + '<div><b>' + esc(m.name) + "</b><small>" + tierBadge(D.tier(m.points)) + " " + num(m.points) + " " + esc(t("puntos")) + '</small></div><button class="ib" id="unm" aria-label="' + esc(t("Quitar cliente")) + '">' + I.x + "</button>" :
           '<label class="gsearch gsearch--in">' + I.search + '<input id="cq" placeholder="' + esc(t("Cliente: nombre o teléfono")) + '" autocomplete="off"></label><button class="btn btn--sm btn--ghost" id="newm">' + I.plus + esc(t("Nuevo")) + '</button><div class="gres" id="cres" hidden></div>') + "</div>" +
-        (lines.length ? '<ul class="cl">' + lines.map(([pid, n]) => { const p = P(pid); return '<li><img src="../' + esc(p.img) + '" width="40" height="40" alt=""><div><b>' + esc(p.short) + "</b><small>" + money(p.price) + '</small></div><div class="qty"><button data-q="' + pid + '" data-d="-1" aria-label="−">−</button><span>' + n + '</span><button data-q="' + pid + '" data-d="1" aria-label="+">+</button></div><b>' + money(p.price * n) + "</b></li>"; }).join("") + "</ul>" : empty(t("Tocá un producto para agregarlo."))) +
+        (lines.length ? '<ul class="cl">' + lines.map(([pid, n]) => { const p = P(pid); return '<li><img src="../' + esc(p.img) + '" width="40" height="40" alt=""><div><b>' + esc(T.tp(p.short)) + "</b><small>" + money(p.price) + '</small></div><div class="qty"><button data-q="' + pid + '" data-d="-1" aria-label="−">−</button><span>' + n + '</span><button data-q="' + pid + '" data-d="1" aria-label="+">+</button></div><b>' + money(p.price * n) + "</b></li>"; }).join("") + "</ul>" : empty(t("Tocá un producto para agregarlo."))) +
         '<div class="pay"><div class="row2">' + field(t("Descuento (Bs)"), '<input id="disc" type="number" min="0" step="1" value="' + esc(CART.discount || "") + '">') + field(t("Canal"), '<select id="chan" class="sel">' + Object.keys(CH).map((k) => opt(k, t(CH[k]), CART.channel)).join("") + "</select>") + "</div>" +
         (B.campaignActive() ? field(t("Regalo Black Friday"), '<select id="gift" class="sel">' + opt("", t("Sin regalo"), CART.gift) + B.campaign.gifts.map((g) => opt(g, g, CART.gift)).join("") + "</select>") : "") +
-        (m && maxPts >= 10 ? '<label class="chk"><input type="checkbox" id="usepts"' + (CART.usePoints ? " checked" : "") + "> " + esc(t("Canjear")) + " " + num(Math.floor(maxPts / 10) * 10) + " " + esc(t("puntos")) + " (−" + money(Math.floor(maxPts / 10)) + ")</label>" : "") +
+        (m && maxPts >= L.redeem ? '<label class="chk"><input type="checkbox" id="usepts"' + (CART.usePoints ? " checked" : "") + "> " + esc(t("Canjear")) + " " + num(Math.floor(maxPts / L.redeem) * L.redeem) + " " + esc(t("puntos")) + " (−" + money(Math.floor(maxPts / L.redeem)) + ")</label>" : "") +
         '<div class="seg" role="group" aria-label="' + esc(t("Medio de pago")) + '">' + Object.keys(PAY).map((k) => '<button type="button" data-pay="' + k + '" aria-pressed="' + (CART.payment === k) + '">' + esc(t(PAY[k])) + "</button>").join("") + "</div>" +
-        '<dl class="tot"><dt>' + esc(t("Subtotal")) + "</dt><dd>" + money2(sub) + "</dd>" + (+CART.discount || ptsDisc ? "<dt>" + esc(t("Descuentos")) + "</dt><dd>−" + money2((+CART.discount || 0) + ptsDisc) + "</dd>" : "") + '<dt class="big">' + esc(t("Total")) + '</dt><dd class="big">' + money2(total) + "</dd>" + (m ? "<dt>" + esc(t("Puntos a ganar")) + "</dt><dd>+" + num(Math.floor(total / 10)) + "</dd>" : "") + "</dl>" +
+        '<dl class="tot"><dt>' + esc(t("Subtotal")) + "</dt><dd>" + money2(sub) + "</dd>" + (+CART.discount || ptsDisc ? "<dt>" + esc(t("Descuentos")) + "</dt><dd>−" + money2((+CART.discount || 0) + ptsDisc) + "</dd>" : "") + '<dt class="big">' + esc(t("Total")) + '</dt><dd class="big">' + money2(total) + "</dd>" + (m ? "<dt>" + esc(t("Puntos a ganar")) + "</dt><dd>+" + num(Math.floor(total / L.per)) + "</dd>" : "") + "</dl>" +
         '<button class="btn btn--block btn--lg" id="charge"' + (lines.length ? "" : " disabled") + ">" + esc(t("Cobrar")) + " " + money2(total) + "</button></div>";
       bindCart(sub, ptsDisc, total);
     }
     function bindCart(sub, ptsDisc, total) {
       const c = $("#cart");
       c.onclick = (e) => {
-        const q = e.target.closest("[data-q]"); if (q) { const pid = q.dataset.q; CART.lines[pid] = Math.max(0, (CART.lines[pid] || 0) + +q.dataset.d); if (CART.lines[pid] > D.db.inventory[bid][pid].qty) { CART.lines[pid] = D.db.inventory[bid][pid].qty; toast(t("No hay más stock en esta sucursal.")); } cart(); return; }
+        const q = e.target.closest("[data-q]"); if (q) { const pid = q.dataset.q; CART.lines[pid] = Math.max(0, (CART.lines[pid] || 0) + +q.dataset.d); if (CART.lines[pid] > D.inv(bid, pid).qty) { CART.lines[pid] = D.inv(bid, pid).qty; toast(t("No hay más stock en esta sucursal.")); } cart(); return; }
         const p = e.target.closest("[data-pay]"); if (p) { CART.payment = p.dataset.pay; cart(); return; }
         if (e.target.closest("#clr")) { CART = { lines: {}, member: null, discount: 0, payment: "qr", channel: "tienda", gift: "", usePoints: false, branch: bid }; cart(); return; }
         if (e.target.closest("#unm")) { CART.member = null; CART.usePoints = false; cart(); return; }
@@ -278,14 +287,14 @@
     }
     function charge(total, ptsDisc) {
       const lines = Object.entries(CART.lines).filter(([, n]) => n > 0).map(([pid, qty]) => ({ pid, qty, price: P(pid).price }));
-      const s = D.addSale({ branchId: bid, staffId: ME.id, memberId: CART.member, channel: CART.channel, payment: CART.payment, lines, discount: (+CART.discount || 0) + ptsDisc, gift: CART.gift, pointsUsed: ptsDisc * 10 }, who());
+      const s = D.addSale({ branchId: bid, staffId: ME.id, memberId: CART.member, channel: CART.channel, payment: CART.payment, lines, discount: (+CART.discount || 0) + ptsDisc, gift: CART.gift, pointsUsed: ptsDisc * D.db.loyalty.redeem }, who());
       const m = s.memberId ? M(s.memberId) : null;
       const receipt = "Bolivia Fitness · " + bname(bid) + "\n" + s.id + " · " + fdt(s.date) + "\n" + lines.map((l) => l.qty + "× " + pname(l.pid) + " — " + money2(l.qty * l.price)).join("\n") + (s.discount ? "\n" + t("Descuento") + ": −" + money2(s.discount) : "") + "\nTotal: " + money2(s.total) + (s.gift ? "\n🎁 " + s.gift : "") + (m ? "\n" + t("Puntos") + ": " + num(m.points) + " (" + t(TIER[D.tier(m.points)]) + ")" : "") + "\n¡" + t("Gracias por tu compra") + "! 🦁";
       modal(t("Venta registrada"), '<div class="receipt"><pre>' + esc(receipt) + "</pre></div>" + (m ? '<a class="btn btn--wa btn--block" target="_blank" rel="noopener" href="' + esc(wa(m.phone, receipt)) + '">' + esc(t("Enviar comprobante por WhatsApp")) + "</a>" : "") + '<button type="button" class="btn btn--ghost btn--block" data-close style="margin-top:10px">' + esc(t("Nueva venta")) + "</button>", null);
       CART = { lines: {}, member: null, discount: 0, payment: CART.payment, channel: "tienda", gift: "", usePoints: false, branch: bid };
       grid(); cart();
     }
-    $("#pgrid").addEventListener("click", (e) => { const b = e.target.closest("[data-p]"); if (!b) return; const pid = b.dataset.p, have = D.db.inventory[bid][pid].qty; if ((CART.lines[pid] || 0) >= have) { toast(t("No hay más stock en esta sucursal.")); return; } CART.lines[pid] = (CART.lines[pid] || 0) + 1; cart(); });
+    $("#pgrid").addEventListener("click", (e) => { const b = e.target.closest("[data-p]"); if (!b) return; const pid = b.dataset.p, have = D.inv(bid, pid).qty; if ((CART.lines[pid] || 0) >= have) { toast(t("No hay más stock en esta sucursal.")); return; } CART.lines[pid] = (CART.lines[pid] || 0) + 1; cart(); });
     $("#pcats").addEventListener("click", (e) => { const b = e.target.closest("[data-c]"); if (!b) return; qcat = b.dataset.c; $$("#pcats .chip").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); grid(); });
     $("#pq").addEventListener("input", (e) => { qtext = e.target.value; grid(); });
     if ($("#posBranch")) $("#posBranch").addEventListener("change", (e) => { bid = e.target.value; CART.branch = bid; CART.lines = {}; grid(); cart(); });
@@ -365,7 +374,7 @@
         const b = BR(fd.get("branchId"));
         const o = D.upsert("members", Object.assign(m ? { id: m.id } : { joined: new Date().toISOString(), points: 0, notes: [] }, { name: fd.get("name").trim(), phone: fd.get("phone").replace(/[^\d]/g, ""), email: fd.get("email").trim(), birthday: fd.get("birthday"), branchId: b.id, city: b.city, goal: fd.get("goal"), source: fd.get("source"), tags: fd.get("tags").split(",").map((s) => s.trim()).filter(Boolean), waOptIn: !!fd.get("waOptIn") }), "m", who());
         toast(t("Cliente guardado")); done && done(o);
-      });
+      }, m && ["owner", "admin"].includes(ME.role) ? { extra: { label: t("Eliminar cliente"), confirm: t("¿Eliminar este cliente? Sus ventas se conservan como ocasionales."), onClick: () => { D.db.sales.forEach((x) => { if (x.memberId === m.id) x.memberId = null; }); D.remove("members", m.id, who()); toast(t("Cliente eliminado")); location.hash = "#/members"; } } } : {});
   }
   function memberPage(v, id) {
     const m = M(id); if (!m) { v.innerHTML = empty(t("Cliente no encontrado.")); return; }
@@ -417,7 +426,8 @@
       '<div class="row2">' + field(t("Valor estimado (Bs)"), inp("value", e.value, ' type="number" min="0"')) + field(t("Etapa"), '<select name="stage" class="sel">' + Object.keys(STAGE).map((k) => opt(k, t(STAGE[k]), e.stage)).join("") + "</select>") + "</div>" +
       '<div class="row2">' + field(t("Sucursal"), '<select name="branchId" class="sel">' + branchOpts(e.branchId) + "</select>") + field(t("Próximo seguimiento"), inp("next", e.next, ' type="date"')) + "</div>" +
       field(t("Responsable"), '<select name="ownerId" class="sel">' + D.db.staff.filter((s) => s.active).map((s) => opt(s.id, s.name + " · " + t(ROLE[s.role]), e.ownerId)).join("") + "</select>") + field(t("Nota"), '<textarea name="note" rows="2">' + esc(e.note) + "</textarea>"),
-      (fd) => { D.upsert("leads", Object.assign(l ? { id: l.id } : { created: new Date().toISOString() }, Object.fromEntries(["name", "phone", "source", "interest", "stage", "branchId", "next", "ownerId", "note"].map((k) => [k, fd.get(k)])), { value: +fd.get("value") || 0 }), "L", who()); toast(t("Guardado")); route(); });
+      (fd) => { D.upsert("leads", Object.assign(l ? { id: l.id } : { created: new Date().toISOString() }, Object.fromEntries(["name", "phone", "source", "interest", "stage", "branchId", "next", "ownerId", "note"].map((k) => [k, fd.get(k)])), { value: +fd.get("value") || 0 }), "L", who()); toast(t("Guardado")); route(); },
+      l ? { extra: { label: t("Eliminar"), confirm: t("¿Eliminar esta oportunidad?"), onClick: () => { D.remove("leads", l.id, who()); toast(t("Eliminado")); route(); } } } : {});
   }
 
   /* ================= INVENTARIO ================= */
@@ -425,7 +435,7 @@
     const ids = bid === "all" ? D.db.branches.map((b) => b.id) : [bid];
     return D.products().map((p) => {
       let qty = 0, min = 0, exp = null, low = 0;
-      ids.forEach((b) => { const r = D.db.inventory[b][p.id]; qty += r.qty; min += r.min; if (r.qty <= r.min) low++; if (r.exp && (!exp || r.exp < exp)) exp = r.exp; });
+      ids.forEach((b) => { const r = D.inv(b, p.id); qty += r.qty; min += r.min; if (r.qty <= r.min) low++; if (r.exp && (!exp || r.exp < exp)) exp = r.exp; });
       const days = exp ? Math.round((Date.parse(exp + "T12:00:00-04:00") - Date.now()) / D.DAY) : null;
       const st = qty === 0 ? "out" : (bid === "all" ? low > 0 : qty <= min) ? "low" : "ok";
       return { p, qty, min, exp, days, st, low, value: qty * p.cost };
@@ -434,7 +444,7 @@
   VIEWS.inventory = function (v, id, q) {
     const bid = curBranch(), rows = invRows(bid);
     let fq = q.get("q") || "", ff = q.get("f") || "all", fc = "all";
-    const editable = bid !== "all" && ["owner", "admin", "manager", "warehouse"].includes(ME.role);
+    const editable = bid !== "all" && ["owner", "admin", "manager", "warehouse"].includes(ME.role), editAll = bid === "all" && ["owner", "admin"].includes(ME.role);
     v.innerHTML = head(t("Inventario"), esc(scope()) + (bid === "all" ? " · " + esc(t("elegí una sucursal arriba para ajustar stock")) : ""), '<button class="btn btn--ghost" id="iexp">' + I.dl + esc(t("Exportar CSV")) + "</button>" + (can("transfers") ? '<a class="btn btn--ghost" href="#/transfers">' + I.transfers + esc(t("Transferir")) + "</a>" : "")) +
       '<div class="kpis kpis--sm"><div class="kpi"><span class="kpi__l">' + esc(t("Unidades en stock")) + '</span><b class="kpi__v">' + num(rows.reduce((a, r) => a + r.qty, 0)) + '</b><span class="kpi__s">' + num(rows.length) + " " + esc(t("productos")) + '</span></div><div class="kpi"><span class="kpi__l">' + esc(t("Valor al costo (estimado)")) + '</span><b class="kpi__v">' + money(rows.reduce((a, r) => a + r.value, 0)) + '</b><span class="kpi__s">' + esc(t("Costo editable en Ajustes")) + '</span></div><button class="kpi kpi--btn" data-f="low"><span class="kpi__l">' + badge(t("Stock bajo"), "warn") + '</span><b class="kpi__v">' + num(rows.filter((r) => r.st !== "ok").length) + '</b><span class="kpi__s">' + esc(t("en o bajo el mínimo")) + '</span></button><button class="kpi kpi--btn" data-f="exp"><span class="kpi__l">' + badge(t("Por vencer"), "bad") + '</span><b class="kpi__v">' + num(rows.filter((r) => r.days != null && r.days <= 60).length) + '</b><span class="kpi__s">' + esc(t("lote más próximo ≤ 60 días")) + "</span></button></div>" +
       '<div class="card"><div class="tools"><label class="gsearch gsearch--in">' + I.search + '<input id="iq" type="search" value="' + esc(fq) + '" placeholder="' + esc(t("Buscar producto…")) + '"></label><div class="chips" id="iff">' + [["all", "Todo"], ["low", "Stock bajo"], ["exp", "Por vencer"]].map(([k, l]) => '<button class="chip" data-v="' + k + '" aria-pressed="' + (k === ff) + '">' + esc(t(l)) + "</button>").join("") + '</div><select class="sel" id="ic">' + opt("all", t("Todas las categorías")) + B.categories.map((c) => opt(c.id, t(c.name))).join("") + "</select></div>" +
@@ -442,17 +452,18 @@
       (bid === "all" ? card(t("Stock por sucursal (productos con alerta)"), '<div class="tbl-w" id="matrix"></div>') : "");
     function render() {
       const r = rows.filter((x) => (fc === "all" || x.p.cat === fc) && (ff === "all" || (ff === "low" ? x.st !== "ok" : x.days != null && x.days <= 60)) && (!fq || norm(x.p.short + " " + x.p.name + " " + x.p.brandName).includes(norm(fq))));
-      $("#ib").innerHTML = r.map((x) => '<tr><td><span class="who"><img src="../' + esc(x.p.img) + '" width="36" height="36" alt=""><span><b>' + esc(x.p.short) + "</b><small>" + esc(x.p.brandName) + " · " + esc(x.p.size) + "</small></span></span></td><td>" + esc(catName(x.p.cat)) + '</td><td class="num">' + money(x.p.price) + '</td><td class="num"><b>' + num(x.qty) + '</b></td><td class="num">' + num(x.min) + "</td><td>" + (x.st === "out" ? badge(t("Agotado"), "bad") : x.st === "low" ? badge(bid === "all" ? x.low + " " + t("suc. bajo mínimo") : t("Bajo"), "warn") : badge("OK", "ok")) + "</td><td>" + (x.exp ? '<span class="' + (x.days <= 30 ? "late" : x.days <= 60 ? "due" : "") + '">' + esc(fdate(x.exp + "T12:00:00-04:00", { year: "2-digit" })) + "</span>" : "—") + "</td><td>" + (editable ? '<button class="btn btn--sm btn--ghost" data-adj="' + x.p.id + '">' + esc(t("Ajustar")) + "</button>" : "") + "</td></tr>").join("") || '<tr><td colspan="8">' + empty(t("Nada con esos filtros.")) + "</td></tr>";
+      $("#ib").innerHTML = r.map((x) => '<tr><td><span class="who"><img src="../' + esc(x.p.img) + '" width="36" height="36" alt=""><span><b>' + esc(T.tp(x.p.short)) + "</b><small>" + esc(x.p.brandName) + " · " + esc(T.tp(x.p.size)) + "</small></span></span></td><td>" + esc(catName(x.p.cat)) + '</td><td class="num">' + money(x.p.price) + '</td><td class="num"><b>' + num(x.qty) + '</b></td><td class="num">' + num(x.min) + "</td><td>" + (x.st === "out" ? badge(t("Agotado"), "bad") : x.st === "low" ? badge(bid === "all" ? x.low + " " + t("suc. bajo mínimo") : t("Bajo"), "warn") : badge("OK", "ok")) + "</td><td>" + (x.exp ? '<span class="' + (x.days <= 30 ? "late" : x.days <= 60 ? "due" : "") + '">' + esc(fdate(x.exp + "T12:00:00-04:00", { year: "2-digit" })) + "</span>" : "—") + "</td><td>" + (editable ? '<button class="btn btn--sm btn--ghost" data-adj="' + x.p.id + '">' + esc(t("Ajustar")) + "</button>" : editAll ? '<button class="btn btn--sm btn--ghost" data-all="' + x.p.id + '">' + esc(t("Editar stock")) + "</button>" : "") + "</td></tr>").join("") || '<tr><td colspan="8">' + empty(t("Nada con esos filtros.")) + "</td></tr>";
     }
     if (bid === "all") {
       const alertP = invRows("all").filter((x) => x.st !== "ok").slice(0, 14);
-      $("#matrix").innerHTML = '<table class="tbl tbl--mx"><thead><tr><th>' + esc(t("Producto")) + "</th>" + D.db.branches.map((b) => '<th title="' + esc(bname(b.id)) + '">' + esc(b.name.replace("Cochabamba", "Cbba").replace("Shopping ", "")) + "</th>").join("") + "</tr></thead><tbody>" + alertP.map((x) => "<tr><td>" + esc(x.p.short) + "</td>" + D.db.branches.map((b) => { const r = D.db.inventory[b.id][x.p.id]; return '<td class="num ' + (r.qty === 0 ? "c-out" : r.qty <= r.min ? "c-low" : "") + '">' + r.qty + "</td>"; }).join("") + "</tr>").join("") + "</tbody></table>";
+      $("#matrix").innerHTML = '<table class="tbl tbl--mx"><thead><tr><th>' + esc(t("Producto")) + "</th>" + D.db.branches.map((b) => '<th title="' + esc(bname(b.id)) + '">' + esc(b.name.replace("Cochabamba", "Cbba").replace("Shopping ", "")) + "</th>").join("") + "</tr></thead><tbody>" + alertP.map((x) => "<tr><td>" + esc(x.p.short) + "</td>" + D.db.branches.map((b) => { const r = D.inv(b.id, x.p.id); return '<td class="num ' + (r.qty === 0 ? "c-out" : r.qty <= r.min ? "c-low" : "") + '">' + (["owner", "admin"].includes(ME.role) ? '<button class="cellb" data-all="' + x.p.id + '" aria-label="' + esc(pname(x.p.id) + " · " + bname(b.id)) + '">' + r.qty + "</button>" : r.qty) + "</td>"; }).join("") + "</tr>").join("") + "</tbody></table>";
     }
     $("#iq").oninput = (e) => { fq = e.target.value; render(); };
     $("#iff").onclick = (e) => { const b = e.target.closest("[data-v]"); if (!b) return; ff = b.dataset.v; $$("#iff .chip").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); render(); };
     $$("[data-f]").forEach((b) => b.onclick = () => { ff = b.dataset.f; $$("#iff .chip").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.v === ff))); render(); });
     $("#ic").onchange = (e) => { fc = e.target.value; render(); };
-    $("#ib").onclick = (e) => { const b = e.target.closest("[data-adj]"); if (!b) return; const pid = b.dataset.adj, r = D.db.inventory[bid][pid];
+    v.addEventListener("click", (e) => { const a = e.target.closest("[data-all]"); if (a) stockModal(a.dataset.all); });
+    $("#ib").onclick = (e) => { const b = e.target.closest("[data-adj]"); if (!b) return; const pid = b.dataset.adj, r = D.inv(bid, pid);
       modal(t("Ajustar stock") + " · " + pname(pid), '<p class="muted">' + esc(bname(bid)) + " · " + esc(t("Stock actual")) + ": <b>" + num(r.qty) + "</b></p>" +
         '<div class="row2">' + field(t("Movimiento"), '<select name="kind" class="sel">' + [["in", "Ingreso de mercadería"], ["out", "Salida / merma"], ["count", "Conteo físico (dejar en)"]].map(([k, l]) => opt(k, t(l))).join("") + "</select>") + field(t("Cantidad"), inp("qty", "", ' type="number" min="0" required')) + "</div>" +
         '<div class="row2">' + field(t("Stock mínimo"), inp("min", r.min, ' type="number" min="0"')) + field(t("Vencimiento del lote más próximo"), inp("exp", r.exp || "", ' type="date"')) + "</div>" + field(t("Motivo"), inp("reason", "", ' placeholder="' + esc(t("Ej.: llegó pedido de Dragon Pharma")) + '"')),
@@ -465,8 +476,9 @@
   VIEWS.transfers = function (v) {
     const list = D.db.transfers.filter((x) => curBranch() === "all" || x.from === curBranch() || x.to === curBranch());
     v.innerHTML = head(t("Transferencias"), esc(t("Mové stock entre sucursales y confirmá la recepción.")), '<button class="btn" id="tadd">' + I.plus + esc(t("Nueva transferencia")) + "</button>") +
-      '<div class="card"><div class="tbl-w"><table class="tbl"><thead><tr><th>' + [t("N°"), t("Fecha"), t("Desde"), t("Hacia"), t("Productos"), t("Estado"), ""].map(esc).join("</th><th>") + "</th></tr></thead><tbody>" + (list.map((x) => "<tr><td><b>" + esc(x.id) + "</b></td><td>" + esc(fdt(x.date)) + "</td><td>" + esc(bname(x.from)) + "</td><td>" + esc(bname(x.to)) + "</td><td>" + esc(x.lines.map((l) => l.qty + "× " + pname(l.pid)).join(", ")) + "</td><td>" + (x.status === "recibida" ? badge(t("Recibida"), "ok") : badge(t("En camino"), "info")) + "</td><td>" + (x.status !== "recibida" && (global() || ME.branchId === x.to) ? '<button class="btn btn--sm" data-rcv="' + x.id + '">' + esc(t("Confirmar recepción")) + "</button>" : "") + "</td></tr>").join("") || '<tr><td colspan="7">' + empty(t("Sin transferencias.")) + "</td></tr>") + "</tbody></table></div></div>";
-    v.onclick = (e) => { const b = e.target.closest("[data-rcv]"); if (b) { D.receive(b.dataset.rcv, who()); toast(t("Stock sumado a la sucursal de destino")); route(); } };
+      '<div class="card"><div class="tbl-w"><table class="tbl"><thead><tr><th>' + [t("N°"), t("Fecha"), t("Desde"), t("Hacia"), t("Productos"), t("Estado"), ""].map(esc).join("</th><th>") + "</th></tr></thead><tbody>" + (list.map((x) => "<tr><td><b>" + esc(x.id) + "</b></td><td>" + esc(fdt(x.date)) + "</td><td>" + esc(bname(x.from)) + "</td><td>" + esc(bname(x.to)) + "</td><td>" + esc(x.lines.map((l) => l.qty + "× " + pname(l.pid)).join(", ")) + "</td><td>" + (x.status === "recibida" ? badge(t("Recibida"), "ok") : x.status === "cancelada" ? badge(t("Cancelada"), "bad") : badge(t("En camino"), "info")) + '</td><td class="acts">' + (x.status === "en camino" && (global() || ME.branchId === x.to) ? '<button class="btn btn--sm" data-rcv="' + x.id + '">' + esc(t("Confirmar recepción")) + "</button>" : "") + (x.status === "en camino" && ["owner", "admin"].includes(ME.role) ? '<button class="btn btn--sm btn--ghost" data-tcx="' + x.id + '">' + esc(t("Cancelar")) + "</button>" : "") + "</td></tr>").join("") || '<tr><td colspan="7">' + empty(t("Sin transferencias.")) + "</td></tr>") + "</tbody></table></div></div>";
+    v.onclick = (e) => { const b = e.target.closest("[data-rcv]"); if (b) { D.receive(b.dataset.rcv, who()); toast(t("Stock sumado a la sucursal de destino")); route(); return; }
+      const c = e.target.closest("[data-tcx]"); if (c && confirm(t("¿Cancelar la transferencia? El stock vuelve a la sucursal de origen."))) { D.cancelTransfer(c.dataset.tcx, who()); toast(t("Transferencia cancelada")); route(); } };
     $("#tadd").onclick = () => {
       const from0 = curBranch() === "all" ? D.db.branches[0].id : curBranch();
       const line = () => '<div class="row2 tl">' + field(t("Producto"), '<select name="pid" class="sel">' + D.products().map((p) => opt(p.id, p.short)).join("") + "</select>") + field(t("Cantidad"), '<input name="qty" type="number" min="1" value="1">') + "</div>";
@@ -475,7 +487,7 @@
           const from = fd.get("from"), to = fd.get("to"); if (from === to) { $("#terr").textContent = t("Elegí sucursales distintas."); return false; }
           const pids = fd.getAll("pid"), qs = fd.getAll("qty"), lines = [];
           pids.forEach((pid, i) => { const n = +qs[i] || 0; if (n > 0) { const ex = lines.find((l) => l.pid === pid); if (ex) ex.qty += n; else lines.push({ pid, qty: n }); } });
-          const short1 = lines.find((l) => D.db.inventory[from][l.pid].qty < l.qty); if (short1) { $("#terr").textContent = t("No hay suficiente stock de") + " " + pname(short1.pid) + " (" + D.db.inventory[from][short1.pid].qty + ")."; return false; }
+          const short1 = lines.find((l) => D.inv(from, l.pid).qty < l.qty); if (short1) { $("#terr").textContent = t("No hay suficiente stock de") + " " + pname(short1.pid) + " (" + D.inv(from, short1.pid).qty + ")."; return false; }
           if (!lines.length) return false;
           D.transfer({ from, to, lines }, who()); toast(t("Transferencia creada")); route();
         });
@@ -487,13 +499,28 @@
   VIEWS.branches = function (v, id) {
     if (id) return branchPage(v, id);
     const month = monthRange();
-    v.innerHTML = head(t("Sucursales"), num(D.db.branches.length) + " " + esc(t("tiendas en 7 ciudades")) + " · " + esc(t("meta y ventas del mes en curso"))) +
+    v.innerHTML = head(t("Sucursales"), num(D.db.branches.length) + " " + esc(t("tiendas")) + " · " + esc(t("meta y ventas del mes en curso")), ["owner", "admin"].includes(ME.role) ? '<button class="btn" id="badd">' + I.plus + esc(t("Nueva sucursal")) + "</button>" : "") +
       '<div class="bcards">' + D.db.branches.filter((b) => global() || b.id === ME.branchId).map((b) => {
         const k = D.kpis(Object.assign({ branch: b.id }, month)), td = D.kpis(Object.assign({ branch: b.id }, D.range("today"))), prog = b.target ? k.rev / b.target : 0;
         const inv = invRows(b.id), low = inv.filter((r) => r.st !== "ok").length, st = openNow(b);
         return '<a class="bcard card" href="#/branches/' + b.id + '"><header><div><small>' + esc(b.city) + "</small><h2>" + esc(b.name) + "</h2></div>" + badge(t(st.l), st.k) + '</header><div class="bcard__n"><div><small>' + esc(t("Hoy")) + "</small><b>" + money(td.rev) + "</b></div><div><small>" + esc(t("Mes")) + "</small><b>" + money(k.rev) + "</b></div><div><small>" + esc(t("Tickets mes")) + "</small><b>" + num(k.orders) + '</b></div></div><div class="prog prog--lg"><i style="width:' + Math.min(100, prog * 100).toFixed(0) + '%"></i></div><p class="muted">' + pct(prog) + " " + esc(t("de la meta")) + " (" + money(b.target) + ") · " + num(D.db.staff.filter((s) => s.branchId === b.id && s.active).length) + " " + esc(t("personas")) + (low ? " · " + num(low) + " " + esc(t("alertas de stock")) : "") + "</p></a>";
       }).join("") + "</div>";
+    if ($("#badd")) $("#badd").onclick = () => branchForm(null);
   };
+  function branchForm(b) {
+    const e = b || { name: "", city: "", address: "", open: "10:00", close: "21:00", target: 50000, managerId: "" };
+    modal(b ? t("Editar sucursal") : t("Nueva sucursal"), '<div class="row2">' + field(t("Nombre"), inp("name", e.name, " required")) + field(t("Ciudad"), inp("city", e.city, " required")) + "</div>" + field(t("Dirección"), inp("address", e.address)) +
+      '<div class="row3">' + field(t("Abre"), inp("open", e.open, ' type="time"')) + field(t("Cierra"), inp("close", e.close, ' type="time"')) + field(t("Meta mensual (Bs)"), inp("target", e.target, ' type="number" min="0"')) + "</div>" +
+      field(t("Encargado"), '<select name="managerId" class="sel">' + opt("", "—", e.managerId || "") + D.db.staff.filter((s) => s.active && s.role !== "owner").map((s) => opt(s.id, s.name + " · " + t(ROLE[s.role]), e.managerId)).join("") + "</select>"),
+      (fd) => {
+        const data = { name: fd.get("name").trim(), city: fd.get("city").trim(), address: fd.get("address").trim(), open: fd.get("open"), close: fd.get("close"), target: +fd.get("target") || 0, managerId: fd.get("managerId") || null };
+        let id = b && b.id;
+        if (b) { Object.assign(b, data); D.log(who(), "Sucursal " + b.name + " editada"); } else id = D.addBranch(data, who());
+        const mgr = data.managerId && ST(data.managerId); if (mgr && mgr.role !== "admin") { mgr.role = "manager"; mgr.branchId = id; mgr.active = true; }
+        D.save(); toast(t("Guardado")); if (!b) { shell(); location.hash = "#/branches/" + id; } route();
+      },
+      b ? { extra: { label: t("Eliminar sucursal"), confirm: t("¿Eliminar esta sucursal? Su stock se borra, el personal queda inactivo y las ventas pasadas se conservan."), onClick: () => { if (!D.removeBranch(b.id, who())) { toast(t("Tiene que quedar al menos una sucursal.")); return false; } if (S.branch === b.id) { S.branch = "all"; saveS(); } toast(t("Sucursal eliminada")); shell(); location.hash = "#/branches"; route(); } } } : {});
+  }
   function monthRange() { const d = today(), from = new Date(d.slice(0, 8) + "01T00:00:00-04:00").getTime(); return { from, to: D.range("today").to }; }
   function openNow(b) { if (!b.open) return { l: "Horario no publicado", k: "n" }; const h = new Intl.DateTimeFormat("en-GB", { timeZone: B.config.timezone, hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date()); return h >= b.open && h < b.close ? { l: "Abierta", k: "ok" } : { l: "Cerrada", k: "n" }; }
   function branchPage(v, id) {
@@ -506,8 +533,7 @@
       '<div class="grid g-2">' + card(t("Productos más vendidos"), C.hbars(D.byProduct(f).slice(0, 8).map((r) => ({ label: pname(r.key), sub: num(r.units) + " u.", v: r.rev })), { fmt: money })) + card(t("Ventas por hora"), '<div class="chart" id="bh"></div>') + "</div>";
     C.line($("#bl"), D.series(f).map((d) => ({ x: short(d.day), v: d.rev, sub: num(d.orders) + " " + t("tickets") })), { id: "br", fmt: money, fmtAxis: (n) => (n >= 1000 ? Math.round(n / 1000) + "k" : Math.round(n)), label: t("Ventas por día") });
     C.bars($("#bh"), D.byHour(f).slice(9, 23).map((h) => ({ x: h.key + "h", v: h.rev })), { fmt: money, fmtAxis: (n) => (n >= 1000 ? Math.round(n / 1000) + "k" : Math.round(n)), label: t("Ventas por hora") });
-    const be = $("#bedit"); if (be) be.onclick = () => modal(t("Editar sucursal"), '<div class="row2">' + field(t("Nombre"), inp("name", b.name, " required")) + field(t("Ciudad"), inp("city", b.city, " required")) + "</div>" + field(t("Dirección"), inp("address", b.address)) + '<div class="row3">' + field(t("Abre"), inp("open", b.open, ' type="time"')) + field(t("Cierra"), inp("close", b.close, ' type="time"')) + field(t("Meta mensual (Bs)"), inp("target", b.target, ' type="number" min="0"')) + "</div>",
-      (fd) => { Object.assign(b, { name: fd.get("name"), city: fd.get("city"), address: fd.get("address"), open: fd.get("open"), close: fd.get("close"), target: +fd.get("target") || 0 }); D.log(who(), "Sucursal " + b.name + " editada"); D.save(); toast(t("Guardado")); route(); });
+    const be = $("#bedit"); if (be) be.onclick = () => branchForm(b);
   }
 
   /* ================= PERSONAL ================= */
@@ -518,19 +544,20 @@
     const editable = ["owner", "admin"].includes(ME.role) || ME.role === "manager";
     v.innerHTML = head(t("Personal"), num(list.filter((s) => s.active).length) + " " + esc(t("personas activas")) + " · " + esc(scope()) + " · " + esc(periodLbl()), editable ? '<button class="btn" id="sadd">' + I.plus + esc(t("Agregar persona")) + "</button>" : "") +
       '<div class="card"><div class="tbl-w"><table class="tbl"><thead><tr><th>' + [t("Nombre"), t("Rol"), t("Sucursal"), t("Ventas"), t("Tickets"), t("Comisión est."), t("Estado"), ""].map(esc).join("</th><th>") + "</th></tr></thead><tbody>" +
-      list.sort((a, b) => ((perf.find((x) => x.key === b.id) || {}).rev || 0) - ((perf.find((x) => x.key === a.id) || {}).rev || 0)).map((s) => { const r = perf.find((x) => x.key === s.id), rev = r ? r.rev : 0; return '<tr><td><a class="who" href="#/staff/' + s.id + '">' + avatar(s.name) + "<span><b>" + esc(s.name) + "</b><small>" + esc(s.phone) + "</small></span></a></td><td>" + esc(t(ROLE[s.role])) + "</td><td>" + esc(s.branchId ? bname(s.branchId) : t("Todas")) + '</td><td class="num"><b>' + money(rev) + '</b></td><td class="num">' + num(ords[s.id] || 0) + '</td><td class="num">' + money(rev * (s.commission || 0) / 100) + " <small class=\"muted\">(" + (s.commission || 0) + "%)</small></td><td>" + (s.active ? badge(t("Activo"), "ok") : badge(t("Inactivo"))) + "</td><td>" + (editable && !["owner"].includes(s.role) ? '<button class="btn btn--sm btn--ghost" data-ed="' + s.id + '">' + esc(t("Editar")) + "</button>" : "") + "</td></tr>"; }).join("") + "</tbody></table></div></div>";
+      list.sort((a, b) => ((perf.find((x) => x.key === b.id) || {}).rev || 0) - ((perf.find((x) => x.key === a.id) || {}).rev || 0)).map((s) => { const r = perf.find((x) => x.key === s.id), rev = r ? r.rev : 0; return '<tr><td><a class="who" href="#/staff/' + s.id + '">' + avatar(s.name) + "<span><b>" + esc(s.name) + "</b><small>" + esc(s.phone) + "</small></span></a></td><td>" + esc(t(ROLE[s.role])) + "</td><td>" + esc(s.branchId ? bname(s.branchId) : t("Todas")) + '</td><td class="num"><b>' + money(rev) + '</b></td><td class="num">' + num(ords[s.id] || 0) + '</td><td class="num">' + money(rev * (s.commission || 0) / 100) + " <small class=\"muted\">(" + (s.commission || 0) + "%)</small></td><td>" + (s.active ? badge(t("Activo"), "ok") : badge(t("Inactivo"))) + "</td><td>" + (editable && (s.role !== "owner" || ME.role === "owner") ? '<button class="btn btn--sm btn--ghost" data-ed="' + s.id + '">' + esc(t("Editar")) + "</button>" : "") + "</td></tr>"; }).join("") + "</tbody></table></div></div>";
     v.onclick = (e) => { const b = e.target.closest("[data-ed]"); if (b) staffForm(ST(b.dataset.ed)); };
     if ($("#sadd")) $("#sadd").onclick = () => staffForm(null);
   };
   function staffForm(s) {
     const e = s || { name: "", role: "seller", branchId: curBranch() === "all" ? D.db.branches[0].id : curBranch(), phone: "591", email: "", hired: today(), commission: 3, active: true, pin: "1234" };
-    const roles = ME.role === "manager" ? ["seller", "coach"] : ["admin", "manager", "seller", "coach", "warehouse"];
+    const roles = s && s.role === "owner" ? ["owner"] : ME.role === "manager" ? ["seller", "coach"] : ["admin", "manager", "seller", "coach", "warehouse"];
     modal(s ? t("Editar persona") : t("Agregar persona"),
       '<div class="row2">' + field(t("Nombre completo"), inp("name", e.name, " required")) + field(t("Teléfono"), inp("phone", e.phone, " required")) + "</div>" +
       '<div class="row2">' + field(t("Rol"), '<select name="role" class="sel">' + roles.map((r) => opt(r, t(ROLE[r]), e.role)).join("") + "</select>") + field(t("Sucursal"), '<select name="branchId" class="sel">' + (ME.role === "manager" ? branchOpts(ME.branchId).split("</option>").filter((x) => x.includes('"' + ME.branchId + '"')).join("</option>") + "</option>" : opt("", t("Todas (oficina central)"), e.branchId || "") + branchOpts(e.branchId)) + "</select>") + "</div>" +
       '<div class="row3">' + field(t("Fecha de ingreso"), inp("hired", e.hired, ' type="date"')) + field(t("Comisión (%)"), inp("commission", e.commission, ' type="number" min="0" max="20" step="0.5"')) + field(t("PIN de acceso"), inp("pin", e.pin, ' inputmode="numeric" pattern="[0-9]{4,6}" required')) + "</div>" +
       field(t("Email"), inp("email", e.email, ' type="email"')) + '<label class="chk"><input type="checkbox" name="active"' + (e.active ? " checked" : "") + "> " + esc(t("Activo (puede iniciar sesión)")) + "</label>",
-      (fd) => { D.upsert("staff", Object.assign(s ? { id: s.id } : {}, { name: fd.get("name"), phone: fd.get("phone"), role: fd.get("role"), branchId: fd.get("branchId") || null, hired: fd.get("hired"), commission: +fd.get("commission") || 0, pin: fd.get("pin"), email: fd.get("email"), active: !!fd.get("active") }), "st", who()); toast(t("Guardado")); route(); });
+      (fd) => { D.upsert("staff", Object.assign(s ? { id: s.id } : {}, { name: fd.get("name"), phone: fd.get("phone"), role: fd.get("role"), branchId: fd.get("branchId") || null, hired: fd.get("hired"), commission: +fd.get("commission") || 0, pin: fd.get("pin"), email: fd.get("email"), active: !!fd.get("active") }), "st", who()); toast(t("Guardado")); route(); },
+      s && s.id !== ME.id && s.role !== "owner" && ["owner", "admin"].includes(ME.role) ? { extra: { label: t("Eliminar"), confirm: t("¿Eliminar a esta persona? Sus ventas pasadas se conservan."), onClick: () => { D.db.shifts = D.db.shifts.filter((z) => z.staffId !== s.id); D.remove("staff", s.id, who()); toast(t("Eliminado")); route(); } } } : {});
   }
   function staffPage(v, id) {
     const s = ST(id); if (!s) { v.innerHTML = empty(t("Persona no encontrada.")); return; }
@@ -586,7 +613,8 @@
       '<div class="row3">' + field(t("Tipo"), '<select name="type" class="sel">' + [["descuento", "Descuento"], ["cupon", "Cupón"], ["puntos", "Puntos extra"], ["regalo", "Regalo"]].map(([k, l]) => opt(k, t(l), e.type)).join("") + "</select>") + field(t("Valor (% o ×)"), inp("value", e.value, ' type="number" min="0"')) + field(t("Código"), inp("code", e.code, ' placeholder="VERANO10"')) + "</div>" +
       '<div class="row3">' + field(t("Desde"), inp("from", e.from, ' type="date" required')) + field(t("Hasta"), inp("to", e.to, ' type="date" required')) + field(t("Segmento"), '<select name="segment" class="sel">' + Object.keys(SEGS).map((k) => opt(k, t(SEGS[k]), e.segment)).join("") + "</select>") + "</div>" +
       field(t("Mensaje para WhatsApp"), '<textarea name="note" rows="3" placeholder="' + esc(t("Ej.: Esta semana 2x1 en shakers 🦁")) + '">' + esc(e.note) + "</textarea>") + '<label class="chk"><input type="checkbox" name="draft"' + (e.status === "borrador" ? " checked" : "") + "> " + esc(t("Guardar como borrador")) + "</label>",
-      (fd) => { D.upsert("campaigns", Object.assign(c ? { id: c.id } : {}, { name: fd.get("name"), type: fd.get("type"), value: +fd.get("value") || 0, code: fd.get("code").toUpperCase(), from: fd.get("from"), to: fd.get("to"), segment: fd.get("segment"), note: fd.get("note"), channel: "whatsapp", status: fd.get("draft") ? "borrador" : "activa" }), "C", who()); toast(t("Guardado")); route(); });
+      (fd) => { D.upsert("campaigns", Object.assign(c ? { id: c.id } : {}, { name: fd.get("name"), type: fd.get("type"), value: +fd.get("value") || 0, code: fd.get("code").toUpperCase(), from: fd.get("from"), to: fd.get("to"), segment: fd.get("segment"), note: fd.get("note"), channel: "whatsapp", status: fd.get("draft") ? "borrador" : "activa" }), "C", who()); toast(t("Guardado")); route(); },
+      c ? { extra: { label: t("Eliminar"), confirm: t("¿Eliminar esta campaña?"), onClick: () => { D.remove("campaigns", c.id, who()); toast(t("Eliminado")); route(); } } } : {});
   }
   function broadcast(seg, msg) {
     const people = segment(seg);
@@ -624,7 +652,7 @@
     const so = ords((s) => s.staffId);
     const tables = {
       branches: { t: "Por sucursal", cols: ["Sucursal", "Ventas", "Tickets", "Ticket prom.", "% del total"], rows: D.byBranch(f).map((r) => [bname(r.key), r.rev, bo[r.key] || 0, (r.rev / (bo[r.key] || 1)), r.rev / D.byBranch(f).reduce((a, x) => a + x.rev, 0)]) },
-      products: { t: "Por producto", cols: ["Producto", "Unidades", "Ventas", "Margen est."], rows: D.byProduct(f).map((r) => { const p = P(r.key); return [p.short, r.units, r.rev, (r.rev - r.units * p.cost) / (r.rev || 1)]; }) },
+      products: { t: "Por producto", cols: ["Producto", "Unidades", "Ventas", "Margen est."], rows: D.byProduct(f).map((r) => { const p = P(r.key); return [T.tp(p.short), r.units, r.rev, (r.rev - r.units * p.cost) / (r.rev || 1)]; }) },
       staff: { t: "Por vendedor", cols: ["Persona", "Sucursal", "Ventas", "Tickets", "Comisión est."], rows: D.byStaff(f).map((r) => { const s = ST(r.key) || {}; return [s.name || r.key, s.branchId ? bname(s.branchId) : "—", r.rev, so[r.key] || 0, r.rev * (s.commission || 0) / 100]; }) },
       categories: { t: "Por categoría", cols: ["Categoría", "Unidades", "Ventas"], rows: D.byCategory(f).map((r) => [catName(r.key), r.units, r.rev]) },
       payments: { t: "Por medio de pago", cols: ["Medio", "Ventas"], rows: D.byPayment(f).map((r) => [t(PAY[r.key]), r.rev]) },
@@ -641,13 +669,70 @@
     draw();
   };
 
+
+  /* ================= CATÁLOGO (dueño / administración) ================= */
+  function stockModal(pid, after) {
+    const p = P(pid);
+    modal(t("Stock por sucursal") + " · " + pname(pid), '<p class="muted">' + esc(t("Editá cantidad, mínimo y vencimiento en cada sucursal. Los cambios quedan en el registro de actividad.")) + "</p>" + stockGrid(pid),
+      (fd) => { saveGrid(pid, fd); toast(t("Stock actualizado")); after ? after() : route(); }, { wide: true });
+  }
+  function stockGrid(pid) {
+    return '<div class="tbl-w"><table class="tbl tbl--grid"><thead><tr><th>' + [t("Sucursal"), t("Stock"), t("Mínimo"), t("Vence")].map(esc).join("</th><th>") + "</th></tr></thead><tbody>" +
+      D.db.branches.map((b) => { const r = pid ? D.inv(b.id, pid) : { qty: 0, min: 2, exp: "" }; return "<tr><td>" + esc(bname(b.id)) + '</td><td><input type="number" min="0" name="q_' + b.id + '" value="' + r.qty + '" aria-label="' + esc(t("Stock") + " · " + bname(b.id)) + '"></td><td><input type="number" min="0" name="m_' + b.id + '" value="' + r.min + '" aria-label="' + esc(t("Mínimo") + " · " + bname(b.id)) + '"></td><td><input type="date" name="e_' + b.id + '" value="' + esc(r.exp || "") + '" aria-label="' + esc(t("Vence") + " · " + bname(b.id)) + '"></td></tr>'; }).join("") + "</tbody></table></div>";
+  }
+  function saveGrid(pid, fd) {
+    D.db.branches.forEach((b) => {
+      const r = D.inv(b.id, pid), q = Math.max(0, Math.round(+fd.get("q_" + b.id) || 0));
+      if (q !== r.qty) D.adjustStock(b.id, pid, q - r.qty, t("Edición del dueño"), who());
+      D.setStock(b.id, pid, { min: Math.max(0, +fd.get("m_" + b.id) || 0), exp: fd.get("e_" + b.id) || null }, who());
+    });
+  }
+  VIEWS.catalog = function (v) {
+    let fq = "", fc = "all";
+    v.innerHTML = head(t("Catálogo"), esc(t("Productos, precios, costos y stock de todas las sucursales. Los precios que cambies acá aplican al CRM y al punto de venta.")), '<button class="btn" id="padd">' + I.plus + esc(t("Nuevo producto")) + "</button>") +
+      '<div class="card"><div class="tools"><label class="gsearch gsearch--in">' + I.search + '<input id="cq2" type="search" placeholder="' + esc(t("Buscar producto…")) + '"></label><select class="sel" id="cc2">' + opt("all", t("Todas las categorías")) + B.categories.map((c) => opt(c.id, t(c.name))).join("") + '</select><span class="muted" id="ccount"></span></div><div class="tbl-w"><table class="tbl"><thead><tr><th>' + [t("Producto"), t("Categoría"), t("Precio"), t("Costo"), t("Margen"), t("Stock total"), t("Estado"), ""].map(esc).join("</th><th>") + '</th></tr></thead><tbody id="cb2"></tbody></table></div></div>';
+    function render() {
+      const list = D.products(true).filter((p) => (fc === "all" || p.cat === fc) && (!fq || norm(p.short + " " + p.name + " " + p.brandName).includes(norm(fq))));
+      $("#ccount").textContent = num(list.length) + " " + t("productos");
+      $("#cb2").innerHTML = list.map((p) => { const tot = D.db.branches.reduce((a, b) => a + D.inv(b.id, p.id).qty, 0), mg = p.price ? (p.price - p.cost) / p.price : 0;
+        return '<tr data-pid="' + p.id + '"><td><span class="who"><img src="../' + esc(p.img) + '" width="36" height="36" alt=""><span><b>' + esc(T.tp(p.short)) + "</b><small>" + esc(p.brandName) + " · " + esc(T.tp(p.size || "")) + "</small></span></span></td><td>" + esc(catName(p.cat)) + '</td><td class="num"><b>' + money2(p.price) + '</b></td><td class="num">' + money2(p.cost) + '</td><td class="num">' + pct(mg) + '</td><td class="num">' + num(tot) + "</td><td>" + (p.hidden ? badge(t("Oculto")) : badge(t("A la venta"), "ok")) + (p.custom ? " " + badge(t("Propio"), "info") : "") + '</td><td class="acts"><button class="btn btn--sm btn--ghost" data-pe="' + p.id + '">' + esc(t("Editar")) + '</button><button class="btn btn--sm btn--ghost" data-ps="' + p.id + '">' + esc(t("Stock")) + "</button></td></tr>"; }).join("") || '<tr><td colspan="8">' + empty(t("Nada con esos filtros.")) + "</td></tr>";
+    }
+    $("#cq2").oninput = (e) => { fq = e.target.value; render(); };
+    $("#cc2").onchange = (e) => { fc = e.target.value; render(); };
+    $("#cb2").onclick = (e) => { const a = e.target.closest("[data-pe]"); if (a) return productForm(a.dataset.pe, render); const b = e.target.closest("[data-ps]"); if (b) stockModal(b.dataset.ps, render); };
+    $("#padd").onclick = () => productForm(null, render);
+    render();
+  };
+  function productForm(pid, after) {
+    const p = pid ? P(pid) : { short: "", name: "", cat: "accesorios", size: "", price: 100, cost: 58, hidden: false, custom: true, brand: "bf" };
+    modal(pid ? t("Editar producto") : t("Nuevo producto"),
+      '<div class="row2">' + field(t("Nombre corto (se ve en caja)"), inp("short", p.short, " required")) + field(t("Nombre completo"), inp("name", p.name, " required")) + "</div>" +
+      '<div class="row2">' + field(t("Categoría"), '<select name="cat" class="sel">' + B.categories.map((c) => opt(c.id, t(c.name), p.cat)).join("") + "</select>") + field(t("Presentación"), inp("size", p.size)) + "</div>" +
+      '<div class="row3">' + field(t("Precio de venta (Bs)"), inp("price", p.price, ' type="number" min="0" step="0.5" required')) + field(t("Costo (Bs)"), inp("cost", p.cost, ' type="number" min="0" step="0.5"')) + field(t("Marca"), '<select name="brand" class="sel"' + (p.custom ? "" : " disabled") + ">" + Object.entries(B.brands).map(([k, b]) => opt(k, b.name, p.brand)).join("") + "</select>") + "</div>" +
+      '<label class="chk"><input type="checkbox" name="hidden"' + (p.hidden ? " checked" : "") + "> " + esc(t("Ocultar del punto de venta (no se vende)")) + "</label>" +
+      (pid ? "" : '<h3 class="mh">' + esc(t("Stock inicial por sucursal")) + "</h3>" + stockGrid(null)),
+      (fd) => {
+        const patch = { short: fd.get("short").trim(), name: fd.get("name").trim(), cat: fd.get("cat"), size: fd.get("size").trim(), price: Math.max(0, +fd.get("price") || 0), hidden: !!fd.get("hidden") };
+        let id = pid;
+        if (pid) D.editProduct(pid, patch, who());
+        else { id = D.addProduct(Object.assign(patch, { brand: fd.get("brand") || "bf" }), who()); saveGrid(id, fd); }
+        if (fd.get("cost") !== "") D.db.cost[id] = Math.max(0, +fd.get("cost") || 0);
+        D.save(); toast(t("Guardado")); after ? after() : route();
+      }, Object.assign({ wide: !pid }, pid && P(pid).custom ? { extra: { label: t("Eliminar"), confirm: t("¿Eliminar este producto y su stock?"), onClick: () => { D.deleteProduct(pid, who()); toast(t("Eliminado")); after ? after() : route(); } } } : {}));
+  }
+
   /* ================= AJUSTES ================= */
   VIEWS.settings = function (v) {
     v.innerHTML = head(t("Ajustes"), "") + '<div class="grid g-2">' +
       card(t("Datos"), '<p class="muted">' + esc(t("Esta versión es una demostración: los datos se guardan solo en este navegador (localStorage). Para usarla con todo el equipo a la vez, el siguiente paso es conectarla a una base de datos en la nube con usuarios reales.")) + '</p><div class="acts"><button class="btn btn--ghost" id="bk">' + I.dl + esc(t("Descargar respaldo (JSON)")) + '</button><label class="btn btn--ghost">' + esc(t("Restaurar respaldo")) + '<input type="file" accept="application/json" id="rs" hidden></label><button class="btn btn--danger" id="rst">' + esc(t("Regenerar datos de demostración")) + "</button></div>") +
-      card(t("Club León (fidelización)"), '<ul class="list"><li><b>' + esc(t("Acumulación")) + "</b><span>" + esc(t("1 punto por cada Bs 10")) + "</span></li><li><b>" + esc(t("Canje")) + "</b><span>" + esc(t("10 puntos = Bs 1 (hasta 20% del ticket)")) + "</span></li>" + D.TIERS.map((x) => "<li>" + tierBadge(x.id) + "<span>" + esc(t("desde")) + " " + num(x.min) + " " + esc(t("puntos")) + "</span></li>").join("") + "</ul>") +
-      card(t("Costos de productos (para margen)"), '<div class="tbl-w" style="max-height:420px"><table class="tbl"><thead><tr><th>' + esc(t("Producto")) + "</th><th>" + esc(t("Precio")) + "</th><th>" + esc(t("Costo")) + "</th></tr></thead><tbody>" + D.products().map((p) => "<tr><td>" + esc(p.short) + '</td><td class="num">' + money(p.price) + '</td><td><input class="cost" type="number" min="0" data-c="' + p.id + '" value="' + p.cost + '" aria-label="' + esc(t("Costo") + " " + p.short) + '"' + (["owner", "admin"].includes(ME.role) ? "" : " disabled") + "></td></tr>").join("") + '</tbody></table></div><p class="muted" style="font-size:12px">' + esc(t("Por defecto el costo se estima en 58% del precio regular.")) + "</p>") +
+      card(t("Club León (fidelización)"), '<form id="loy" class="loy"><div class="row3">' + field(t("Bs por punto"), inp("per", D.db.loyalty.per, ' type="number" min="1" step="1" required')) + field(t("Puntos por Bs 1 de descuento"), inp("redeem", D.db.loyalty.redeem, ' type="number" min="1" step="1" required')) + field(t("Canje máx. (% del ticket)"), inp("maxPct", D.db.loyalty.maxPct, ' type="number" min="0" max="100" required')) + '</div><div class="row3">' + ["plata", "oro", "leon"].map((k) => field(t("Nivel") + " " + t(TIER[k]) + " (" + t("puntos") + ")", inp("t_" + k, D.db.loyalty.tiers[k], ' type="number" min="1" required'))).join("") + "</div>" + (["owner", "admin"].includes(ME.role) ? '<button class="btn btn--sm">' + esc(t("Guardar reglas")) + "</button>" : "") + '<p class="muted" style="font-size:12px;margin:8px 0 0">' + esc(t("1 punto por cada")) + " Bs " + num(D.db.loyalty.per) + " · " + num(D.db.loyalty.redeem) + " " + esc(t("puntos")) + " = Bs 1 · " + esc(t("hasta")) + " " + num(D.db.loyalty.maxPct) + "% " + esc(t("del ticket")) + "</p></form>") +
+      card(t("Costos de productos (para margen)"), '<div class="tbl-w" style="max-height:420px"><table class="tbl"><thead><tr><th>' + esc(t("Producto")) + "</th><th>" + esc(t("Precio")) + "</th><th>" + esc(t("Costo")) + "</th></tr></thead><tbody>" + D.products(true).map((p) => "<tr><td>" + esc(T.tp(p.short)) + '</td><td class="num">' + money(p.price) + '</td><td><input class="cost" type="number" min="0" data-c="' + p.id + '" value="' + p.cost + '" aria-label="' + esc(t("Costo") + " " + p.short) + '"' + (["owner", "admin"].includes(ME.role) ? "" : " disabled") + "></td></tr>").join("") + '</tbody></table></div><p class="muted" style="font-size:12px">' + esc(t("Por defecto el costo se estima en 58% del precio regular.")) + "</p>") +
       card(t("Registro de actividad"), '<ul class="feed feed--scroll">' + D.db.log.slice(0, 120).map((l) => "<li><b>" + esc(l.who) + "</b> " + esc(l.what) + "<small>" + esc(fdt(l.at)) + "</small></li>").join("") + "</ul>") + "</div>";
+    const lf = $("#loy");
+    if (!["owner", "admin"].includes(ME.role)) lf.querySelectorAll("input").forEach((x) => (x.disabled = true));
+    lf.onsubmit = (e) => { e.preventDefault(); const fd = new FormData(lf), tiers = { plata: +fd.get("t_plata"), oro: +fd.get("t_oro"), leon: +fd.get("t_leon") };
+      if (!(tiers.plata < tiers.oro && tiers.oro < tiers.leon)) { toast(t("Los niveles tienen que ir de menor a mayor.")); return; }
+      D.db.loyalty = { per: Math.max(1, +fd.get("per")), redeem: Math.max(1, +fd.get("redeem")), maxPct: Math.min(100, Math.max(0, +fd.get("maxPct"))), tiers }; D.log(who(), "Reglas del Club León actualizadas"); D.save(); toast(t("Guardado")); route(); };
     $("#bk").onclick = () => download("bolivia-fitness-crm-" + today() + ".json", D.exportJSON(), "application/json");
     $("#rs").onchange = (e) => { const file = e.target.files[0]; if (!file) return; file.text().then((txt) => { try { D.importJSON(txt); toast(t("Respaldo restaurado")); route(); } catch (er) { toast(t("Archivo no válido")); } }); };
     $("#rst").onclick = () => { if (confirm(t("¿Borrar todo y volver a los datos de demostración?"))) { D.reset(); toast(t("Datos regenerados")); ME = ST(ME.id) || ST("st-owner"); route(); } };

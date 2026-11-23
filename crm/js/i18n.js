@@ -89,12 +89,32 @@
     "¡Ganada! Se creó el cliente en el club.": "Won! The customer was added to the club.", "¡Hola": "Hi", "¡Hola {nombre}! 🦁 Tenemos novedades para vos en Bolivia Fitness.": "Hi {nombre}! 🦁 We have news for you at Bolivia Fitness.",
     "¿Anular esta venta? Se devuelve el stock y se descuentan los puntos.": "Void this sale? Stock is returned and points are deducted.", "¿Borrar todo y volver a los datos de demostración?": "Erase everything and go back to the demo data?",
     "¿Cómo nos conoció?": "How did they find us?", "¿Eliminar esta tarea?": "Delete this task?", "Última compra": "Last purchase", "Últimos 30 días": "Last 30 days", "Últimos 7 días": "Last 7 days", "Últimos 90 días": "Last 90 days",
-    "Descuento ": "Discount",
+    "1 punto por cada": "1 point per", "A la venta": "On sale", "Bs por punto": "Bs per point", "Cancelada": "Cancelled", "Canje máx. (% del ticket)": "Max. redemption (% of ticket)",
+    "Catálogo": "Catalog", "Cliente eliminado": "Customer deleted", "Costo (Bs)": "Cost (Bs)", "Edición del dueño": "Owner edit", "Editar producto": "Edit product", "Editar stock": "Edit stock",
+    "Editá cantidad, mínimo y vencimiento en cada sucursal. Los cambios quedan en el registro de actividad.": "Edit quantity, minimum and expiry at every store. Changes are recorded in the activity log.",
+    "Eliminado": "Deleted", "Eliminar cliente": "Delete customer", "Eliminar sucursal": "Delete store", "Encargado": "Manager", "Guardar reglas": "Save rules", "Idioma": "Language",
+    "Los niveles tienen que ir de menor a mayor.": "Tiers must go from lowest to highest.", "Marca": "Brand", "Margen": "Margin", "Nombre corto (se ve en caja)": "Short name (shown at checkout)",
+    "Nueva sucursal": "New store", "Nuevo producto": "New product", "Ocultar del punto de venta (no se vende)": "Hide from point of sale (not for sale)", "Oculto": "Hidden",
+    "Precio de venta (Bs)": "Sale price (Bs)", "Presentación": "Size",
+    "Productos, precios, costos y stock de todas las sucursales. Los precios que cambies acá aplican al CRM y al punto de venta.": "Products, prices, costs and stock for every store. Prices you change here apply to the CRM and point of sale.",
+    "Propio": "Own", "Puntos por Bs 1 de descuento": "Points per Bs 1 off", "Stock inicial por sucursal": "Opening stock per store", "Stock por sucursal": "Stock by store", "Stock total": "Total stock",
+    "Sucursal eliminada": "Store deleted", "Tiene que quedar al menos una sucursal.": "At least one store must remain.", "Transferencia cancelada": "Transfer cancelled", "del ticket": "of the ticket",
+    "hasta": "up to", "tiendas": "stores", "¿Cancelar la transferencia? El stock vuelve a la sucursal de origen.": "Cancel this transfer? Stock goes back to the origin store.",
+    "¿Eliminar a esta persona? Sus ventas pasadas se conservan.": "Delete this person? Their past sales are kept.", "¿Eliminar esta campaña?": "Delete this campaign?",
+    "¿Eliminar esta oportunidad?": "Delete this lead?", "¿Eliminar esta sucursal? Su stock se borra, el personal queda inactivo y las ventas pasadas se conservan.": "Delete this store? Its stock is erased, its staff become inactive and past sales are kept.",
+    "¿Eliminar este cliente? Sus ventas se conservan como ocasionales.": "Delete this customer? Their sales are kept as walk-in sales.", "¿Eliminar este producto y su stock?": "Delete this product and its stock?",
   };
   let lang = "es";
   try { lang = localStorage.getItem("bf_lang") === "en" ? "en" : "es"; } catch (e) { /* nada */ }
   document.documentElement.lang = lang === "en" ? "en" : "es-BO";
+  // vocabulario del catálogo (nombres cortos y presentaciones de js/data.js)
+  const W = [[/(\d[\d–+ ]*) servicios\b/g, "$1 servings"], [/\bservicios\b/g, "servings"], [/cápsulas blandas/g, "softgels"], [/cápsulas/g, "capsules"], [/tabletas/g, "tablets"], [/sobres/g, "sachets"],
+    [/por servicio/g, "per serving"], [/Sin sabor/g, "Unflavored"], [/sin sabor/g, "unflavored"], [/Líquid[ao]/g, "Liquid"], [/líquid[ao]/g, "liquid"], [/^Pre-entreno$/, "Pre-workout"],
+    [/Aminoácidos esenciales/g, "Essential amino acids"], [/Superalimento en polvo/g, "Powdered superfood"], [/Gorro de lana/g, "Knit beanie"], [/^Gorra$/, "Cap"], [/^Mochila$/, "Drawstring bag"], [/Vaso térmico/g, "Tumbler"],
+    [/Creatina DP con sabor Lemon Lime/g, "DP Creatine Lemon Lime"], [/Creatina/g, "Creatine"], [/Glutamina/g, "Glutamine"], [/Beta Alanina/g, "Beta Alanine"], [/L-Citrulina/g, "L-Citrulline"], [/L-Carnitina/g, "L-Carnitine"],
+    [/Hidratación/g, "Hydration"], [/Probióticos/g, "Probiotics"], [/Shaker exclusivo/g, "Exclusive shaker"], [/Gorra BF/g, "BF cap"], [/Chulo BF/g, "BF chullo beanie"], [/Mochila de tiras BF/g, "BF drawstring bag"], [/Gorro Dragon/g, "Dragon beanie"], [/ o /g, " or "]];
   window.CRMI18N = {
+    tp: (s) => { if (lang !== "en" || !s) return s; let o = String(s); W.forEach(([re, r]) => { o = o.replace(re, r); }); return o; },
     t: (s) => (lang === "en" && Object.prototype.hasOwnProperty.call(EN, s) ? EN[s] : s),
     lang: () => lang,
     set: (l) => { lang = l === "en" ? "en" : "es"; document.documentElement.lang = lang === "en" ? "en" : "es-BO"; try { localStorage.setItem("bf_lang", lang); } catch (e) { /* nada */ } },

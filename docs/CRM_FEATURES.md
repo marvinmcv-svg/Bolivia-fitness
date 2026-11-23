@@ -39,9 +39,19 @@ Mindbody, ABC Glofox and ABC Fitness (gym chains), plus 2026 comparison guides.
 | **Reports** | By store, product (with margin), salesperson (commission), category, payment and channel; comparison with the previous period; CSV |
 | **Settings** | JSON backup and restore, regenerate demo data, editable product costs, loyalty rules, activity log |
 
+**Owner/admin editing:** Catalog module (edit name, price, cost, category, hide from the point of sale, create products with opening stock, archive them), stock editor for every store at once (quantity, minimum, expiry), add, edit and delete stores (including the manager), editable loyalty rules (Bs per point, redemption, maximum %, tier thresholds), and delete actions for customers, leads, staff, campaigns, tasks and transfers.
+
 Also included: Spanish/English, light/dark mode (shared with the online store), role-based permissions, global search (`/`), responsive layout.
 
-## 3. Important limitation (demo) and next step
+## 3. Automated tests
+
+`npm run test:crm` (or `node tests/e2e/crm.mjs [URL] [screenshots-folder]`) runs 38 Playwright tests:
+every module on 6 devices (iPhone SE, iPhone 13, Pixel 7, iPad, laptop, desktop) with no JS errors, no horizontal overflow,
+accessible names and touch-target sizes; permissions per role; every owner workflow end to end (sale, void, customers, leads,
+stock, catalog, transfers, stores, staff, shifts, campaigns, tasks, reports, loyalty, backup); global search and keyboard;
+filters; charts; persistence; Spanish/English with no Spanish left visible in English; light/dark mode; and a touch sale on a phone.
+
+## 4. Important limitation (demo) and next step
 
 Data is stored **only in the browser** (localStorage), and the PIN check runs in the browser, so it is **not real security**.
 Everything is fictional demo data. To use it for real with the whole team, the next step is:
